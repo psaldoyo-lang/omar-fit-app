@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OMAR FIT - Personal Trainer App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            black: '#09090b',
+                            card: '#121215',
+                            border: '#27272a',
+                            red: '#ff1e27',
+                            redDark: '#c40d14',
+                            redGlow: 'rgba(255, 30, 39, 0.25)',
+                            text: '#f4f4f5',
+                            muted: '#a1a1aa'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        display: ['Teko', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050506;
+            color: #f4f4f5;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #121215;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #ff1e27;
+        }
+        .glow-red {
+            box-shadow: 0 0 25px rgba(255, 30, 39, 0.35);
+        }
+        .glow-red-sm {
+            box-shadow: 0 0 12px rgba(255, 30, 39, 0.25);
+        }
+    </style>
+</head>
+
+<body class="bg-black text-brand-text min-h-screen flex flex-col justify-between pb-20 md:pb-0">
+
+    <!-- ========================================================================= -->
+    <!-- PANTALLA DE LOGIN PREMIUM -->
+    <!-- ========================================================================= -->
+    <div id="view-login" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#050506] transition-opacity duration-500">
+        
+        <!-- Fondo de Video Cinematográfico Élite -->
+        <div class="absolute inset-0 z-0 overflow-hidden bg-[#050506] flex items-center justify-center">
+            <!-- Video alejado (scale-[0.8]) -->
+            <video id="login-video" autoplay loop muted playsinline class="w-full h-full object-cover opacity-[0.4] scale-[0.8] blur-[2px] pointer-events-none transition-opacity duration-1000 mask-image: radial-gradient(circle, black 50%, transparent 100%)">
+                <source src="vid/login_bg.mp4" type="video/mp4">
+                <source src="https://cdn.pixabay.com/video/2019/10/11/27756-366050519_large.mp4" type="video/mp4">
+            </video>
+            
+            <!-- Capas de Sombras súper oscuras en los bordes -->
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_#050506_80%)]"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#050506] via-transparent to-[#050506]/80 mix-blend-multiply"></div>
+            
+            <!-- Brillo radial rojo dinámico -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-red/15 rounded-full blur-[100px] pointer-events-none animate-pulse duration-1000"></div>
+        </div>
+
+        <!-- Tarjeta Interactiva (Login / Registro) -->
+        <div class="relative z-10 w-full max-w-[380px] p-8 bg-[#09090b]/80 backdrop-blur-2xl border border-zinc-800/80 rounded-[2rem] shadow-[0_0_40px_rgba(255,30,39,0.1)] mx-4 flex flex-col items-center overflow-hidden transition-all duration-500">
+            
+            <!-- Logo Animado con Resplandor -->
+            <div class="w-20 h-20 bg-[#121215] border-2 border-brand-red rounded-2xl overflow-hidden mb-4 shadow-[0_0_25px_rgba(255,30,39,0.3)] flex items-center justify-center relative group p-1 shrink-0">
+                <img src="assets/logo.jpeg" alt="Logo" class="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-700">
+                <div class="absolute inset-0 bg-brand-red/10 animate-pulse pointer-events-none"></div>
+            </div>
+            
+            <h1 class="text-3xl font-display font-black tracking-widest uppercase mb-1"><span class="text-white">Omar</span><span class="text-brand-red">Fit</span></h1>
+            <p id="dynamic-greeting" class="text-[10px] text-brand-red uppercase tracking-widest font-black mb-6 text-center animate-pulse">Iniciando sistema...</p>
+            
+            <!-- ========================================== -->
+            <!-- CAJA DE LOGIN (Visible por defecto) -->
+            <!-- ========================================== -->
+            <div id="login-box" class="w-full animate-[fadeIn_0.5s_ease-out]">
+                <form onsubmit="event.preventDefault(); handleAppLogin();" class="w-full space-y-4">
+                    <div>
+                        <div class="relative group">
+                            <i class="fa-solid fa-user absolute left-4 top-3.5 text-zinc-500 text-xs group-focus-within:text-brand-red transition-colors"></i>
+                            <input type="text" id="login-username" placeholder="Usuario o Correo" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="relative group">
+                            <i class="fa-solid fa-lock absolute left-4 top-3.5 text-zinc-500 text-xs group-focus-within:text-brand-red transition-colors"></i>
+                            <input type="password" id="login-password" placeholder="Contraseña" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-login-submit" type="submit" class="w-full py-3.5 mt-2 bg-brand-red hover:bg-brand-redDark text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(255,30,39,0.3)] hover:shadow-[0_0_25px_rgba(255,30,39,0.5)] transition-all flex items-center justify-center space-x-2 group">
+                        <span id="btn-login-text" class="transition-all">Iniciar Sesión</span>
+                        <i id="btn-login-icon" class="fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                    </button>
+                    
+                    <div class="flex items-center justify-center space-x-3 py-2">
+                        <div class="h-px w-full bg-zinc-800/80"></div>
+                        <span class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest whitespace-nowrap">O ingresa con</span>
+                        <div class="h-px w-full bg-zinc-800/80"></div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="handleAppLogin('google')" class="flex-1 py-2.5 bg-[#121215] border border-zinc-800 hover:border-zinc-500 text-white font-bold rounded-xl transition-all flex items-center justify-center shadow-md group">
+                            <i class="fa-brands fa-google text-zinc-400 group-hover:text-brand-red transition-colors"></i>
+                        </button>
+                        <button type="button" onclick="handleAppLogin('facebook')" class="flex-1 py-2.5 bg-[#121215] border border-zinc-800 hover:border-blue-900/50 text-white font-bold rounded-xl transition-all flex items-center justify-center shadow-md group">
+                            <i class="fa-brands fa-facebook text-zinc-400 group-hover:text-blue-500 transition-colors"></i>
+                        </button>
+                    </div>
+
+                    <div class="text-center pt-2">
+                        <p class="text-[10px] text-zinc-500 font-medium tracking-wide">¿Eres nuevo? <button type="button" onclick="toggleAuthView('register')" class="text-white font-bold hover:text-brand-red transition-colors ml-1 border-b border-zinc-700 hover:border-brand-red">Crea tu cuenta</button></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- CAJA DE REGISTRO (Oculta por defecto) -->
+            <!-- ========================================== -->
+            <div id="register-box" class="w-full hidden animate-[fadeIn_0.5s_ease-out]">
+                <!-- ¡EL FORMULARIO RESTAURADO ESTÁ AQUÍ! -->
+                <form onsubmit="event.preventDefault(); handleAppRegister();" class="w-full space-y-3">
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="relative group">
+                            <i class="fa-solid fa-id-badge absolute left-3 top-3 text-zinc-500 text-[10px] group-focus-within:text-brand-red transition-colors"></i>
+                            <input type="text" id="reg-name" placeholder="Nombres" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-8 pr-2 py-2.5 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                        </div>
+                        <div class="relative group">
+                            <input type="text" id="reg-lastname" placeholder="Apellidos" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <i class="fa-solid fa-phone absolute left-4 top-3.5 text-zinc-500 text-xs group-focus-within:text-brand-red transition-colors"></i>
+                        <input type="tel" id="reg-phone" placeholder="Teléfono / Celular" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                    </div>
+                    
+                    <div class="relative group">
+                        <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-zinc-500 text-xs group-focus-within:text-brand-red transition-colors"></i>
+                        <input type="email" id="reg-email" placeholder="Correo Electrónico" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="relative group">
+                            <i class="fa-solid fa-lock absolute left-3 top-3 text-zinc-500 text-[10px] group-focus-within:text-brand-red transition-colors"></i>
+                            <input type="password" id="reg-pass" placeholder="Contraseña" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-8 pr-2 py-2.5 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                        </div>
+                        <div class="relative group">
+                            <i class="fa-solid fa-shield-check absolute left-3 top-3 text-zinc-500 text-[10px] group-focus-within:text-brand-red transition-colors"></i>
+                            <input type="password" id="reg-pass-confirm" placeholder="Confirmar" class="w-full bg-[#121215]/80 border border-zinc-800 rounded-xl pl-8 pr-2 py-2.5 text-xs text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/50 transition-all shadow-inner" required>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-reg-submit" type="submit" class="w-full py-3.5 mt-2 bg-brand-red hover:bg-brand-redDark text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(255,30,39,0.3)] hover:shadow-[0_0_25px_rgba(255,30,39,0.5)] transition-all flex items-center justify-center space-x-2 group">
+                        <span id="btn-reg-text" class="transition-all">Comenzar Ahora</span>
+                        <i id="btn-reg-icon" class="fa-solid fa-user-plus text-[10px] transition-transform group-hover:scale-110"></i>
+                    </button>
+
+                    <div class="text-center pt-1">
+                        <p class="text-[10px] text-zinc-500 font-medium tracking-wide">¿Ya eres parte de la Élite? <button type="button" onclick="toggleAuthView('login')" class="text-white font-bold hover:text-brand-red transition-colors ml-1 border-b border-zinc-700 hover:border-brand-red">Inicia sesión</button></p>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- HEADER DE NAVEGACIÓN -->
+    <header id="app-header" class="hidden sticky top-0 z-40 bg-[#050506]/95 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 shadow-md">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 group">
+                <div class="relative w-12 h-10 bg-black border border-brand-red/80 rounded-lg overflow-hidden glow-red-sm flex items-center justify-center">
+                    <img src="assets/logo.jpeg" onError="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'" alt="Omar Fit Logo" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center space-x-1">
+                        <span class="font-display text-xl tracking-wider text-white font-bold leading-none">OMAR</span>
+                        <span class="font-display text-xl tracking-wider text-brand-red font-bold leading-none">FIT</span>
+                    </div>
+                    <p id="header-role-text" class="text-[9px] text-brand-muted tracking-widest uppercase font-semibold">Plataforma Élite</p>
+                </div>
+            </div>
+
+            <div id="header-controls" class="flex items-center space-x-2">
+                <div id="coach-toggles" class="hidden bg-[#121215] p-1 rounded-xl border border-zinc-800 flex items-center">
+                    <button id="btn-view-student" onclick="switchView('student')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-brand-muted hover:text-white">Vista Alumno</button>
+                    <button id="btn-view-trainer" onclick="switchView('trainer')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md">Mi Panel CRM</button>
+                </div>
+                
+                <button onclick="logoutApp()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 hover:border-brand-red text-zinc-400 hover:text-brand-red transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- FONDO RADIAL ROJIZO MODO PREMIUM -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_top_left,_rgba(255,30,39,0.12),_transparent_50%)]"></div>
+    
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main id="app-main" class="hidden max-w-4xl mx-auto w-full px-4 py-4 flex-1">
+
+        <!-- ========================================================================= -->
+        <!-- VISTA ALUMNO -->
+        <!-- ========================================================================= -->
+        <div id="view-student" class="space-y-6" style="display: block;">
+            
+            <div class="space-y-4">
+                <div class="bg-brand-card p-4 rounded-2xl border border-brand-border flex flex-col space-y-4 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div id="student-avatar-container" class="relative w-12 h-12 rounded-xl border-2 border-brand-red overflow-hidden bg-zinc-900 flex items-center justify-center font-bold text-white text-base shadow-inner">
+                                <span id="student-initials-display">TS</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <h2 class="text-base font-black text-white uppercase tracking-wide" id="student-name-display">Tommy SALDARRIAGA</h2>
+                                    <span class="bg-brand-red text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase flex items-center"><i class="fa-solid fa-crown mr-1"></i>PRO</span>
+                                </div>
+                                <p id="student-subtitle-display" class="text-xs text-brand-muted">Entrenador: <span class="text-white font-semibold">Omar Ore</span> | <span id="student-status-display" class="text-emerald-400 font-bold">● Al día</span></p>
+                            </div>
+                        </div>
+                        <!-- Botón de Ajustes (Ahora con ID para controlarlo) -->
+                        <button id="btn-student-settings"onclick="openStudentSettingsModal()" class="w-9 h-9 bg-zinc-800 hover:bg-brand-red text-white rounded-xl flex items-center justify-center transition-all shadow-md group" title="Ajustes de Perfil">
+                            <i class="fa-solid fa-gear text-xs group-hover:rotate-90 transition-transform duration-300"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4 text-xs font-bold border-t border-brand-border/50 pt-3">
+                        <div class="flex items-center space-x-1 text-amber-400">
+                            <i class="fa-solid fa-fire"></i>
+                            <span id="student-racha-display">Racha: 1 días</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-emerald-400">
+                            <i class="fa-solid fa-weight-scale"></i>
+                            <span>Último peso: 78.5 kg</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-brand-red">
+                            <i class="fa-solid fa-gem"></i>
+                            <span id="student-plan-mini">Plan Activo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="document.getElementById('section-workout').scrollIntoView({behavior: 'smooth'})" class="w-full py-4 bg-brand-red hover:bg-brand-redDark text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_15px_rgba(255,30,39,0.4)] transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-play-circle text-lg"></i>
+                    <span id="btn-start-workout-text">INICIAR ENTRENAMIENTO DE HOY</span>
+                </button>
+
+                <div class="relative rounded-2xl overflow-hidden shadow-[0_0_15px_rgba(255,30,39,0.2)] group cursor-pointer" onclick="openImageModal()">
+                    <div class="absolute inset-0 border-[3px] border-amber-500/80 rounded-2xl z-10 pointer-events-none mix-blend-overlay"></div>
+                    <img id="mot-banner-img" src="assets/foto principal.jpg" onError="this.src='https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80'" alt="Familia Omar Fit" class="w-full h-56 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-black/40 to-transparent"></div>
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-end pb-6 px-4 text-center z-20">
+                        <span class="bg-brand-red text-white text-[10px] uppercase font-extrabold px-3 py-1 rounded-full shadow-md mb-2 flex items-center space-x-1">
+                            <i class="fa-solid fa-bolt"></i> <span>Mentalidad Fierrera</span>
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-black italic tracking-wide uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-100 to-amber-400 drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)] leading-tight">
+                            "ENTRENA SIN EXCUSAS, PARA QUE EL DOLOR DE HOY SEA EL RESULTADO DEL MAÑANA"
+                        </h2>
+                        <p class="text-xs sm:text-sm text-brand-muted font-medium">
+                            Cada repetición cuenta para tu objetivo de <span id="student-plan-mot-display" class="text-brand-red font-bold underline decoration-brand-red/40">Hipertrofia 1 a 1</span>. ¡Sin excusas! 🔥
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                    <p class="text-[11px] text-brand-muted uppercase font-bold">Programa</p>
+                    <p id="student-plan-display" class="text-xs font-bold text-white mt-1">Hipertrofia 1 a 1</p>
+                </div>
+                <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                    <p class="text-[11px] text-brand-muted uppercase font-bold">Vencimiento</p>
+                    <p id="student-duedate-display" class="text-xs font-bold text-white mt-1"><i class="fa-regular fa-calendar-check text-brand-red mr-1"></i> 30/11/2026</p>
+                </div>
+                <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                    <p class="text-[11px] text-brand-muted uppercase font-bold">Modalidad</p>
+                    <p id="student-paytype-display" class="text-xs font-bold text-amber-400 mt-1"><i class="fa-solid fa-clock mr-1"></i> Mensual</p>
+                </div>
+                <div class="bg-brand-card p-3.5 rounded-xl border border-brand-border">
+                    <p class="text-[11px] text-brand-muted uppercase font-bold">Costo</p>
+                    <p id="student-fee-display" class="text-xs font-bold text-emerald-400 mt-1">S/ 150.00</p>
+                </div>
+            </div>
+
+            <section class="bg-brand-card rounded-2xl border border-brand-border p-4 md:p-5 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-black tracking-wide text-white uppercase"><i class="fa-solid fa-users text-brand-red mr-2"></i>Familia Fierrera Omar Fit</h3>
+                        <p class="text-xs text-brand-muted">Mira destacados o abre la galería completa del equipo.</p>
+                    </div>
+                    <div class="flex space-x-1 border border-brand-border bg-black/60 p-1 rounded-xl">
+                        <button onclick="openFullGalleryModal('all')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-brand-red text-white hover:opacity-90 transition-all flex items-center space-x-1 cursor-pointer">
+                            <i class="fa-solid fa-border-all text-[10px]"></i>
+                            <span>Todos</span>
+                        </button>
+                        <button onclick="openFullGalleryModal('photos')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white transition-all flex items-center space-x-1 cursor-pointer">
+                            <i class="fa-solid fa-camera text-[10px] text-brand-red"></i>
+                            <span>Fotos</span>
+                        </button>
+                        <button onclick="openFullGalleryModal('videos')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white transition-all flex items-center space-x-1 cursor-pointer">
+                            <i class="fa-solid fa-video text-[10px] text-brand-red"></i>
+                            <span>Videos</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="relative group rounded-xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg" onclick="openMediaModal('image', 'assets/foto principal.jpg', 'Familia Fierrera Omar Fit 🔥')">
+                        <img src="assets/foto principal.jpg" alt="Foto Principal" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
+                        <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md border border-zinc-700 backdrop-blur-md flex items-center space-x-1">
+                            <i class="fa-solid fa-camera text-brand-red"></i>
+                            <span>Foto</span>
+                        </span>
+                    </div>
+
+                    <div class="relative group rounded-xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg" onclick="openMediaModal('image', 'assets/gym athletic.jpg', 'Entrenamiento Gym Athletic 🏋️‍♂️')">
+                        <img src="assets/gym athletic.jpg" alt="Gym Athletic" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
+                        <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md border border-zinc-700 backdrop-blur-md flex items-center space-x-1">
+                            <i class="fa-solid fa-camera text-brand-red"></i>
+                            <span>Foto</span>
+                        </span>
+                    </div>
+
+                    <div class="relative group rounded-xl overflow-hidden border-2 border-brand-red hover:border-white bg-zinc-900 aspect-video cursor-pointer shadow-lg transition-all" 
+                         onclick="openMediaModal('video', 'vid/video1.mp4', 'Entrenamiento Intensivo Omar Fit 🔥')"
+                         onmouseenter="this.querySelector('video') && this.querySelector('video').play()"
+                         onmouseleave="this.querySelector('video') && this.querySelector('video').pause()">
+                        
+                        <video src="vid/preview.mp4" muted loop playsinline preload="metadata" class="w-full h-full object-cover opacity-95"></video>
+                        
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none">
+                            <div class="w-12 h-12 bg-brand-red/90 text-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300 glow-red border border-white/20">
+                                <i class="fa-solid fa-play text-lg ml-1"></i>
+                            </div>
+                        </div>
+                        
+                        <span class="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow flex items-center space-x-1 pointer-events-none">
+                            <i class="fa-solid fa-video"></i>
+                            <span>Video</span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-workout" class="bg-brand-card rounded-2xl border border-brand-border p-4 md:p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-base font-black tracking-wide text-white uppercase">Mi Rutina de Hoy</h3>
+                            <span id="workout-day-tag" class="bg-brand-red text-white text-xs font-bold px-2 py-0.5 rounded-md uppercase">PECHO & TRÍCEPS</span>
+                        </div>
+                    </div>
+                    <div class="flex overflow-x-auto space-x-1 pb-1 custom-scrollbar">
+                        <button onclick="selectDay('lun')" id="btn-day-lun" class="day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-red text-white">LUN</button>
+                        <button onclick="selectDay('mar')" id="btn-day-mar" class="day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white">MAR</button>
+                        <button onclick="selectDay('mie')" id="btn-day-mie" class="day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white">MIÉ</button>
+                        <button onclick="selectDay('jue')" id="btn-day-jue" class="day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white">JUE</button>
+                        <button onclick="selectDay('vie')" id="btn-day-vie" class="day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white">VIE</button>
+                        <button onclick="selectDay('sab')" id="btn-day-sab" class="day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white">SÁB</button>
+                    </div>
+                </div>
+
+                <div class="mb-5 bg-zinc-900 p-3 rounded-xl border border-zinc-800">
+                    <div class="flex justify-between text-xs font-bold mb-1.5">
+                        <span class="text-brand-muted">Progreso del Entrenamiento</span>
+                        <span id="workout-percentage" class="text-brand-red">0% COMPLETADO</span>
+                    </div>
+                    <div class="w-full h-3 bg-zinc-800 rounded-full overflow-hidden p-0.5">
+                        <div id="workout-progress-fill" class="h-full bg-gradient-to-r from-red-600 to-brand-red rounded-full transition-all duration-300 w-0"></div>
+                    </div>
+                </div>
+
+                <div id="exercise-list" class="space-y-3"></div>
+
+                <button id="btn-finish-workout" onclick="finishWorkout()" class="w-full mt-5 py-3.5 bg-zinc-800 text-zinc-500 font-extrabold rounded-xl transition-all cursor-not-allowed uppercase tracking-wider text-sm flex items-center justify-center space-x-2" disabled>
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Completar Entrenamiento del Día</span>
+                </button>
+            </section>
+
+            <!-- Plan Nutricional Asignado -->
+            <section id="section-nutrition" class="bg-brand-card rounded-2xl border border-brand-border p-4 md:p-5">
+            </section>
+
+            <section id="section-progress" class="bg-brand-card rounded-2xl border border-brand-border p-4 md:p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-black tracking-wide text-white uppercase"><i class="fa-solid fa-chart-line text-brand-red mr-2"></i>Avances y Medidas</h3>
+                        <p class="text-xs text-brand-muted">Registro de peso corporal y evolución física.</p>
+                    </div>
+                    <button onclick="openAddMeasureModal()" class="px-3 py-1.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-lg shadow-md transition-all">
+                        <i class="fa-solid fa-plus mr-1"></i> Añadir Registro
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-zinc-500 uppercase font-extrabold tracking-wider text-xs">
+                                <th class="py-4 px-3">Fecha</th>
+                                <th class="py-4 px-3">Peso</th>
+                                <th class="py-4 px-3">% Grasa</th>
+                                <th class="py-4 px-3">Cintura</th>
+                                <th class="py-4 px-3">Brazo</th>
+                                <th class="py-4 px-3">Nota</th>
+                                <th class="py-4 px-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>                        
+                        <tbody id="measures-history-body" class="divide-y divide-zinc-800/60 font-medium">
+                            <tr>
+                                <td class="py-2.5 px-3 font-bold text-white">12/10/2026</td>
+                                <td class="py-2.5 px-3 text-brand-red font-bold">78.5 kg</td>
+                                <td class="py-2.5 px-3 text-white">14.2 %</td>
+                                <td class="py-2.5 px-3 text-white">82 cm</td>
+                                <td class="py-2.5 px-3 text-white">39 cm</td>
+                                <td id="default-note-cell" class="py-2.5 px-3 text-emerald-400 font-bold">¡Excelente ganancia!</td>
+                                <td class="py-2.5 px-3 text-center">
+                                    <button onclick="this.closest('tr').remove(); showToast('Registro eliminado.', 'fa-trash-can');" class="px-2 py-1 bg-zinc-800 hover:bg-brand-red text-white rounded-lg font-bold text-[10px]">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="pt-2">
+                <a href="https://wa.me/51914774277" target="_blank" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all glow-red-sm">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <span>Consultar al Coach Omar (+51 914774277)</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- PANEL ENTRENADOR (COACH OMAR) -->
+        <!-- ========================================================================= -->
+        <div id="view-trainer" class="space-y-6" style="display: none;">
+            
+            <div class="bg-[#101014] rounded-2xl border border-zinc-800/80 px-6 py-5 border-l-[4px] border-l-brand-red flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
+                <div class="space-y-1.5 w-full">
+                    <div class="flex items-center space-x-3 mb-1">
+                        <span class="bg-brand-redDark/20 border border-brand-red/50 text-brand-red text-[10px] font-black px-2 py-0.5 rounded flex items-center uppercase tracking-wider">Coach Suite CRM</span>
+                        <span class="text-emerald-500 text-[10px] font-bold flex items-center"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Sincronizado</span>
+                    </div>
+                    <h2 class="text-2xl font-black uppercase text-white font-display tracking-wide m-0 leading-none">Gestión de Alumnos Omar Fit</h2>
+                    <p class="text-xs text-brand-muted m-0">Control ejecutivo de membresías, alertas de pago por WhatsApp, planes y seguimiento individual.</p>
+                </div>
+                <div class="flex flex-row items-center justify-start md:justify-end space-x-3 w-full md:w-auto shrink-0 mt-2 md:mt-0">
+                    <button onclick="exportToCSV()" class="flex-1 md:flex-none px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow border border-zinc-700 transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-file-csv text-emerald-500"></i>
+                        <span class="whitespace-nowrap">Exportar CSV</span>
+                    </button>
+                    <button onclick="openAddStudentModal()" class="flex-1 md:flex-none px-4 py-2.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(255,30,39,0.3)] transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span class="whitespace-nowrap">Nuevo Alumno</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-[#101014] px-5 py-4 rounded-2xl border border-zinc-800/80 shadow-md flex flex-col justify-between transition-all hover:bg-zinc-900">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Total Alumnos</span>
+                        <div class="w-6 h-6 rounded-md bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-user-group text-[10px]"></i></div>
+                    </div>
+                    <div>
+                        <p id="stat-total-students" class="text-3xl font-black text-white font-display leading-none mb-1">0</p>
+                        <p class="text-[10px] text-emerald-400 font-bold flex items-center"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Comunidad activa</p>
+                    </div>
+                </div>
+                
+                <div class="bg-[#101014] px-5 py-4 rounded-2xl border border-zinc-800/80 shadow-md flex flex-col justify-between transition-all hover:bg-zinc-900">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Pagos Al Día</span>
+                        <div class="w-6 h-6 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500"><i class="fa-solid fa-circle-check text-[10px]"></i></div>
+                    </div>
+                    <div>
+                        <p id="stat-paid-students" class="text-3xl font-black text-emerald-400 font-display leading-none mb-1">0</p>
+                        <p id="stat-paid-rate" class="text-[10px] text-zinc-400 font-medium">Tasa al día: 0%</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#101014] px-5 py-4 rounded-2xl border border-zinc-800/80 shadow-md flex flex-col justify-between transition-all hover:bg-zinc-900">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Por Vencer</span>
+                        <div class="w-6 h-6 rounded-md bg-amber-500/10 flex items-center justify-center text-amber-500"><i class="fa-solid fa-bell text-[10px]"></i></div>
+                    </div>
+                    <div>
+                        <p id="stat-pending-students" class="text-3xl font-black text-amber-400 font-display leading-none mb-1">0</p>
+                        <p class="text-[10px] text-amber-500 font-bold">Recordatorio 1-clic</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#101014] px-5 py-4 rounded-2xl border border-zinc-800/80 shadow-md flex flex-col justify-between transition-all hover:bg-zinc-900">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Ingreso Estimado</span>
+                        <div class="w-6 h-6 rounded-md bg-brand-red/10 flex items-center justify-center text-brand-red"><i class="fa-solid fa-chart-pie text-[10px]"></i></div>
+                    </div>
+                    <div>
+                        <p id="stat-total-revenue" class="text-2xl font-black text-white font-display tracking-wide leading-none mb-2">S/ 0</p>
+                        <div class="w-full h-[5px] bg-zinc-800 rounded-full overflow-hidden flex gap-0.5">
+                            <div class="h-full bg-brand-red w-1/3 shadow-[0_0_8px_#ff1e27]"></div>
+                            <div id="stat-income-bar" class="h-full bg-emerald-500 w-2/3 shadow-[0_0_8px_#10b981]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#101014] p-5 rounded-2xl border border-zinc-800/80 space-y-4 shadow-xl">
+                <div class="flex flex-col lg:flex-row gap-4 justify-between items-center">
+                    <div class="relative w-full lg:w-96">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-zinc-500 text-xs"></i>
+                        <input type="text" id="student-search-input" onkeyup="filterStudents()" placeholder="Buscar atleta por nombre o plan..." class="w-full bg-[#09090b] border border-zinc-800 rounded-full pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-brand-red transition-all shadow-inner">
+                    </div>
+                    
+                    <div class="flex space-x-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 custom-scrollbar items-center">
+                        <button onclick="setFilterStatus('all')" id="btn-filter-all" class="filter-status-btn px-4 py-1.5 text-[11px] font-bold rounded-full bg-brand-red text-white whitespace-nowrap shadow-[0_0_10px_rgba(255,30,39,0.3)] transition-all">Todos (10)</button>
+                        <button onclick="setFilterStatus('paid')" id="btn-filter-paid" class="filter-status-btn px-4 py-1.5 text-[11px] font-bold rounded-full bg-transparent border border-zinc-700 text-zinc-400 hover:text-white whitespace-nowrap transition-all">Al día</button>
+                        <button onclick="setFilterStatus('due')" id="btn-filter-due" class="filter-status-btn px-4 py-1.5 text-[11px] font-bold rounded-full bg-transparent border border-zinc-700 text-zinc-400 hover:text-white whitespace-nowrap transition-all">Por Vencer</button>
+                        <button onclick="renderTrainerTable()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-all shadow shrink-0"><i class="fa-solid fa-rotate text-[10px]"></i></button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-zinc-500 uppercase font-extrabold tracking-widest text-[10px]">
+                                <th class="py-4 px-3">Atleta</th>
+                                <th class="py-4 px-3">Plan / Programa</th>
+                                <th class="py-4 px-3">Cuota (S/)</th>
+                                <th class="py-4 px-3">Modalidad</th>
+                                <th class="py-4 px-3">Vencimiento</th>
+                                <th class="py-4 px-3 text-center">Estado</th>
+                                <th class="py-4 px-3 text-center">Acciones CRM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainer-students-table" class="divide-y divide-zinc-800/50 font-medium">
+                            <!-- JS inyecta las filas aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODAL REPRODUCTOR FLOTANTE DE VIDEO LIBRE DE MÁSCARAS -->
+    <div id="modal-video-player" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 hidden">
+        <button onclick="closeVideoModal()" class="absolute top-6 right-6 w-14 h-14 bg-zinc-800 hover:bg-brand-red text-white text-2xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <div class="max-w-4xl w-full flex flex-col items-center justify-center space-y-3">
+            <h4 id="video-modal-title" class="text-sm md:text-base font-black uppercase text-white tracking-wide text-center"></h4>
+            <div class="w-full flex justify-center relative border-2 border-brand-red shadow-2xl bg-black">
+                <video id="video-modal-target" src="" controls playsinline preload="auto" class="w-full max-h-[80vh] object-contain">
+                    Tu navegador no soporta reproducción de video.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VER FOTO EN PANTALLA COMPLETA -->
+    <div id="modal-image-fullscreen" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <button onclick="closeImageModal()" class="absolute top-6 right-6 w-14 h-14 bg-zinc-800 hover:bg-brand-red text-white text-2xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="relative max-w-5xl w-full h-full flex items-center justify-center p-4">
+            <img id="fullscreen-img-target" src="" alt="Foto Agrandada" class="max-w-full max-h-[85vh] rounded-2xl object-contain border-2 border-brand-red/60 shadow-2xl glow-red">
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR / EDITAR ALUMNO -->
+    <div id="modal-student" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-md w-full p-5 space-y-4 glow-red">
+            <div class="flex justify-between items-center border-b border-brand-border pb-3">
+                <h3 id="modal-student-title" class="text-base font-black text-white uppercase"><i class="fa-solid fa-user-plus text-brand-red mr-2"></i>Registrar Nuevo Alumno</h3>
+                <button onclick="closeAddStudentModal()" class="text-brand-muted hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="student-edit-id" value="">
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Nombre Completo</label>
+                    <input type="text" id="new-student-name" placeholder="Ej. Carlos Ruiz" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">WhatsApp</label>
+                    <input type="text" id="new-student-phone" placeholder="914774277" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Plan de Entrenamiento</label>
+                    <select id="new-student-plan" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                        <option value="Hipertrofia 1 a 1">Hipertrofia & M. Muscular (1 a 1)</option>
+                        <option value="Pérdida de Grasa & Definición">Pérdida de Grasa & Definición</option>
+                        <option value="Entrenamiento Funcional & Cross">Entrenamiento Funcional & Cross</option>
+                        <option value="Preparación Física Competencia">Preparación Física Competencia</option>
+                        <option value="Rutinas para Gimnasio y Casa">Rutinas para Gimnasio y Casa</option>
+                        <option value="Asesoría Nutricional & Plan">Asesoría Nutricional & Plan</option>
+                        <option value="Entrenamiento Semanal Intensivo">Entrenamiento Semanal Intensivo</option>
+                        <option value="Grupos Reducidos (Fit)">Grupos Reducidos (Fit)</option>
+                        <option value="Acondicionamiento Físico">Acondicionamiento Físico General</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Modalidad</label>
+                        <select id="new-student-paytype" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                            <option value="Mensual">Mensual</option>
+                            <option value="Semanal">Semanal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Monto (S/)</label>
+                        <input type="number" id="new-student-fee" value="150" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Vencimiento (DD/MM/AAAA)</label>
+                    <input type="text" id="new-student-duedate" value="30/11/2026" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red font-mono">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Nota o Comentario del Coach</label>
+                    <input type="text" id="new-student-note" placeholder="Ej. ¡Excelente ganancia muscular!" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeAddStudentModal()" class="w-1/2 py-2.5 bg-zinc-800 text-brand-muted font-bold text-xs rounded-xl">Cancelar</button>
+                <button onclick="saveStudentData()" class="w-1/2 py-2.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-xl shadow-md">Guardar Alumno</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR MEDIDAS -->
+    <div id="modal-measure" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-md w-full p-5 space-y-4 glow-red">
+            <div class="flex justify-between items-center border-b border-brand-border pb-3">
+                <h3 class="text-base font-black text-white uppercase"><i class="fa-solid fa-ruler-combined text-brand-red mr-2"></i>Registrar Medidas</h3>
+                <button onclick="closeAddMeasureModal()" class="text-brand-muted hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Peso (kg)</label>
+                    <input type="number" id="input-weight" placeholder="Ej. 78.5" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">% Grasa</label>
+                        <input type="number" id="input-fat" placeholder="Ej. 14.5" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Cintura (cm)</label>
+                        <input type="number" id="input-waist" placeholder="Ej. 82" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Brazo (cm)</label>
+                    <input type="number" id="input-arm" placeholder="Ej. 39" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeAddMeasureModal()" class="w-1/2 py-2.5 bg-zinc-800 text-brand-muted font-bold text-xs rounded-xl">Cancelar</button>
+                <button onclick="saveMeasureRecord()" class="w-1/2 py-2.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-xl shadow-md">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ASIGNAR DIETA (COACH) -->
+    <div id="modal-diet-builder" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#101014] border border-zinc-800/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-4 mb-4">
+                <h3 class="text-lg font-black text-white uppercase tracking-wide"><i class="fa-solid fa-utensils text-brand-red mr-2"></i>Asignar Dieta</h3>
+                <button onclick="closeDietModal()" class="text-zinc-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <input type="hidden" id="diet-student-id">
+            <div class="space-y-4 flex-1">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1.5">Fase / Objetivo</label>
+                        <input type="text" id="diet-phase" placeholder="Ej. Volumen Limpio" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1.5">Calorías Meta (Kcal)</label>
+                        <input type="number" id="diet-kcal" placeholder="Ej. 2800" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red transition-colors">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-brand-red uppercase block mb-1.5">Proteína (g)</label>
+                        <input type="number" id="diet-prot" placeholder="210" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-amber-500 uppercase block mb-1.5">Carbos (g)</label>
+                        <input type="number" id="diet-carb" placeholder="320" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-emerald-500 uppercase block mb-1.5">Grasas (g)</label>
+                        <input type="number" id="diet-fat" placeholder="75" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                    </div>
+                </div>
+                
+                <div class="border-t border-zinc-800/80 pt-3">
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1.5">Comida 1 (Desayuno)</label>
+                    <textarea id="diet-meal1" rows="2" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red placeholder-zinc-700" placeholder="Ej. 4 Huevos enteros + Avena..."></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1.5">Comida 2 (Media Mañana / Snack)</label>
+                    <textarea id="diet-meal2" rows="2" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red placeholder-zinc-700"></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1.5">Comida 3 (Almuerzo)</label>
+                    <textarea id="diet-meal3" rows="2" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red placeholder-zinc-700"></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1.5">Comida 4 (Cena / Post-Entreno)</label>
+                    <textarea id="diet-meal4" rows="2" class="w-full bg-[#050506] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red placeholder-zinc-700"></textarea>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-5 mt-auto">
+                <button onclick="closeDietModal()" class="w-1/2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs rounded-xl transition-colors">Cancelar</button>
+                <button onclick="saveDiet()" class="w-1/2 py-3 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-xl shadow-[0_0_15px_rgba(255,30,39,0.3)] transition-colors">Guardar Dieta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AJUSTES Y PERFIL DEL ALUMNO -->
+    <div id="modal-student-settings" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-md w-full p-5 space-y-4 glow-red">
+            <div class="flex justify-between items-center border-b border-brand-border pb-3">
+                <h3 class="text-base font-black text-white uppercase"><i class="fa-solid fa-user-gear text-brand-red mr-2"></i>Mi Perfil y Ajustes</h3>
+                <button onclick="closeStudentSettingsModal()" class="text-brand-muted hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex flex-col items-center justify-center space-y-2 py-2">
+                    <div id="modal-avatar-preview" class="w-20 h-20 rounded-full border-2 border-brand-red overflow-hidden bg-zinc-900 flex items-center justify-center text-white font-bold text-xl shadow-lg relative group">
+                        <span id="modal-avatar-initials">TS</span>
+                    </div>
+                    <p class="text-[11px] text-brand-muted uppercase font-bold">Foto de Perfil</p>
+                    <div class="flex space-x-2 w-full pt-1">
+                        <label class="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl text-center cursor-pointer transition-all">
+                            <i class="fa-solid fa-image mr-1 text-brand-red"></i> Galería
+                            <input type="file" id="input-upload-photo" accept="image/*" class="hidden" onchange="previewProfilePhoto(event)">
+                        </label>
+                        <label class="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl text-center cursor-pointer transition-all">
+                            <i class="fa-solid fa-camera mr-1 text-brand-red"></i> Cámara
+                            <input type="file" id="input-camera-photo" accept="image/*" capture="environment" class="hidden" onchange="previewProfilePhoto(event)">
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Mi Nombre Completo</label>
+                    <input type="text" id="edit-my-name" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Mi Número de WhatsApp</label>
+                    <input type="text" id="edit-my-phone" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-brand-muted uppercase block mb-1">Mi Correo Electrónico</label>
+                    <input type="email" id="edit-my-email" placeholder="correo@ejemplo.com" class="w-full bg-black border border-brand-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-brand-red">
+                </div>
+            </div>
+           <!-- NUEVO BOTÓN DE CERRAR SESIÓN EN AJUSTES -->
+            <div class="pt-2 border-t border-zinc-800/80 mt-2">
+                <button onclick="logoutApp()" class="w-full py-2.5 bg-[#121215] border border-zinc-800 hover:border-brand-red text-zinc-400 hover:text-brand-red font-bold text-xs rounded-xl flex items-center justify-center space-x-2 transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar Sesión Segura</span>
+                </button>
+            </div>
+
+            <!-- Botones originales de Guardar y Cancelar -->
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeStudentSettingsModal()" class="w-1/2 py-2.5 bg-zinc-800 text-brand-muted font-bold text-xs rounded-xl">Cancelar</button>
+                <button onclick="saveStudentProfileChanges()" class="w-1/2 py-2.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-xl shadow-md">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GALERÍA COMPLETA -->
+    <div id="modal-full-gallery" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl glow-red">
+            <div class="p-4 border-b border-brand-border flex items-center justify-between bg-zinc-900/80">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-photo-film text-brand-red text-lg"></i>
+                    <h3 id="full-gallery-title" class="text-base font-black uppercase text-white tracking-wide">Galería Omar Fit</h3>
+                </div>
+                <button onclick="closeFullGalleryModal()" class="w-9 h-9 bg-zinc-800 hover:bg-brand-red text-white rounded-full flex items-center justify-center transition-all border border-zinc-700 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto custom-scrollbar flex-1">
+                <div id="full-gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ALERTA VENCIMIENTO / BLOQUEO DEFINITIVO -->
+    <div id="modal-weekly-warning" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-brand-card border-2 border-brand-red rounded-3xl max-w-sm w-full p-6 text-center space-y-5 glow-red shadow-2xl">
+            <div class="w-16 h-16 bg-brand-red/20 border-2 border-brand-red text-brand-red rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+                <i id="weekly-warning-icon" class="fa-solid fa-lock"></i>
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-xl font-black uppercase text-white tracking-wide">MEMBRESÍA <span id="weekly-warning-days" class="text-brand-red">VENCE PRONTO</span></h3>
+                <p id="weekly-warning-desc" class="text-xs text-brand-muted leading-relaxed">Tu plan ha finalizado o está por vencer. Renueva con el Coach Omar para continuar con tu progreso.</p>
+            </div>
+            <div class="space-y-2 pt-2">
+                <a id="btn-renew-whatsapp-modal" href="https://wa.me/51914774277?text=Hola%20Coach%20Omar,%20quiero%20renovar%20mi%20membres%C3%ADa%20%F0%9F%94%A5" target="_blank" class="w-full py-3.5 bg-brand-red hover:bg-brand-redDark text-white font-extrabold rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all uppercase text-xs">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
+                    <span>RENOVAR VÍA WHATSAPP</span>
+                </a>
+                <button id="btn-modal-warning-dismiss" onclick="closeWeeklyWarning()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-brand-muted hover:text-white font-bold text-xs rounded-xl transition-all">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div id="toast" class="fixed top-16 right-4 z-50 bg-brand-red text-white font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-[-10px]">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toast-message" class="text-xs">Operación exitosa</span>
+    </div>
+
+    <!-- JAVASCRIPT DE LA APLICACIÓN -->
+    <script>
+        const videoCache = {};
+
+        function preloadVideo(url) {
+            if (videoCache[url]) return;
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    videoCache[url] = URL.createObjectURL(blob);
+                })
+                .catch(err => console.log("Error en precarga de video:", err));
+        }
+
+        const workoutData = {
+            lun: [
+                { id: 1, name: "Press de Banca Plano con Barra", sets: "4 Series", reps: "10 - 12 Reps", rest: "90 seg", weight: "70 kg", icon: "fa-dumbbell", completed: false },
+                { id: 2, name: "Press Inclinado con Mancuernas", sets: "4 Series", reps: "10 Reps", rest: "75 seg", weight: "24 kg c/u", icon: "fa-dumbbell", completed: false },
+                { id: 3, name: "Aperturas en Polea Alta", sets: "3 Series", reps: "15 Reps", rest: "60 seg", weight: "15 kg", icon: "fa-dumbbell", completed: false },
+                { id: 4, name: "Fondos en Paralelas para Pecho", sets: "3 Series", reps: "Al fallo", rest: "90 seg", weight: "Corporal", icon: "fa-child", completed: false },
+                { id: 5, name: "Extensiones de Tríceps en Polea", sets: "4 Series", reps: "12 Reps", rest: "60 seg", weight: "25 kg", icon: "fa-dumbbell", completed: false },
+                { id: 6, name: "Press Francés con Barra Z", sets: "3 Series", reps: "10 Reps", rest: "75 seg", weight: "30 kg", icon: "fa-dumbbell", completed: false }
+            ],
+            mar: [
+                { id: 7, name: "Dominadas Agarre Ancho", sets: "4 Series", reps: "8 - 10 Reps", rest: "90 seg", weight: "Corporal", icon: "fa-child", completed: false },
+                { id: 8, name: "Jalón al Pecho Polea Alta", sets: "4 Series", reps: "12 Reps", rest: "75 seg", weight: "55 kg", icon: "fa-dumbbell", completed: false },
+                { id: 9, name: "Remo con Barra T", sets: "4 Series", reps: "10 Reps", rest: "90 seg", weight: "50 kg", icon: "fa-dumbbell", completed: false },
+                { id: 10, name: "Remo Unilateral con Mancuerna", sets: "3 Series", reps: "12 Reps", rest: "60 seg", weight: "28 kg", icon: "fa-dumbbell", completed: false },
+                { id: 11, name: "Curl de Bíceps con Barra Z", sets: "4 Series", reps: "10 Reps", rest: "60 seg", weight: "25 kg", icon: "fa-dumbbell", completed: false },
+                { id: 12, name: "Curl Martillo con Mancuernas", sets: "3 Series", reps: "12 Reps", rest: "60 seg", weight: "14 kg", icon: "fa-dumbbell", completed: false }
+            ],
+            mie: [
+                { id: 13, name: "Sentadilla Libre Profunda", sets: "4 Series", reps: "8 - 10 Reps", rest: "120 seg", weight: "90 kg", icon: "fa-person-walking", completed: false },
+                { id: 14, name: "Prensa 45 Grados Pesada", sets: "4 Series", reps: "12 Reps", rest: "90 seg", weight: "160 kg", icon: "fa-dumbbell", completed: false },
+                { id: 15, name: "Zancadas Caminando con Mancuernas", sets: "3 Series", reps: "12 Pasos/Pierna", rest: "75 seg", weight: "16 kg c/u", icon: "fa-person-walking", completed: false },
+                { id: 16, name: "Sillón de Extensiones de Cuádriceps", sets: "4 Series", reps: "15 Reps", rest: "60 seg", weight: "45 kg", icon: "fa-dumbbell", completed: false },
+                { id: 17, name: "Curl Femoral Tumbado", sets: "4 Series", reps: "12 Reps", rest: "60 seg", weight: "35 kg", icon: "fa-dumbbell", completed: false },
+                { id: 18, name: "Elevación de Gemelos en Máquina", sets: "5 Series", reps: "20 Reps", rest: "45 seg", weight: "60 kg", icon: "fa-dumbbell", completed: false }
+            ],
+            jue: [
+                { id: 19, name: "Press Militar con Barra de Pie", sets: "4 Series", reps: "8 - 10 Reps", rest: "90 seg", weight: "40 kg", icon: "fa-dumbbell", completed: false },
+                { id: 20, name: "Elevaciones Laterales con Mancuerna", sets: "4 Series", reps: "15 Reps", rest: "60 seg", weight: "10 kg", icon: "fa-dumbbell", completed: false },
+                { id: 21, name: "Pájaro en Polea Posterior", sets: "4 Series", reps: "15 Reps", rest: "60 seg", weight: "8 kg", icon: "fa-dumbbell", completed: false },
+                { id: 22, name: "Encogimientos de Hombro con Barra", sets: "4 Series", reps: "15 Reps", rest: "60 seg", weight: "70 kg", icon: "fa-dumbbell", completed: false },
+                { id: 23, name: "Press Arnold Sentado", sets: "3 Series", reps: "10 Reps", rest: "75 seg", weight: "18 kg", icon: "fa-dumbbell", completed: false }
+            ],
+            vie: [
+                { id: 24, name: "Kettlebell Swings (Circuito)", sets: "5 Rondas", reps: "45 seg", rest: "15 seg", weight: "Kettlebell 16kg", icon: "fa-fire", completed: false },
+                { id: 25, name: "Burpees con Salto Explosivo", sets: "5 Rondas", reps: "45 seg", rest: "15 seg", weight: "Corporal", icon: "fa-person-running", completed: false },
+                { id: 26, name: "Mountain Climbers Intensivos", sets: "5 Rondas", reps: "45 seg", rest: "15 seg", weight: "Corporal", icon: "fa-fire", completed: false },
+                { id: 27, name: "Salto con Cuerda / Velocidad", sets: "5 Rondas", reps: "60 seg", rest: "20 seg", weight: "Cuerda", icon: "fa-bolt", completed: false },
+                { id: 28, name: "Planchas Abdominales Estáticas", sets: "4 Rondas", reps: "60 seg", rest: "30 seg", weight: "Corporal", icon: "fa-child", completed: false }
+            ],
+            sab: [
+                { id: 29, name: "Peso Muerto Rumano con Barra", sets: "4 Series", reps: "10 Reps", rest: "90 seg", weight: "80 kg", icon: "fa-dumbbell", completed: false },
+                { id: 30, name: "Hip Thrust con Barra en Banco", sets: "4 Series", reps: "12 Reps", rest: "90 seg", weight: "100 kg", icon: "fa-dumbbell", completed: false },
+                { id: 31, name: "Abducciones en Máquina Sentado", sets: "4 Series", reps: "15 Reps", rest: "60 seg", weight: "50 kg", icon: "fa-dumbbell", completed: false },
+                { id: 32, name: "Patada de Glúteo en Polea", sets: "3 Series", reps: "12 Reps/Lado", rest: "60 seg", weight: "15 kg", icon: "fa-dumbbell", completed: false }
+            ]
+        };
+
+        const dayTags = {
+            lun: "PECHO & TRÍCEPS",
+            mar: "ESPALDA & BÍCEPS",
+            mie: "PIERNA COMPLETA",
+            jue: "HOMBRO & TRAPECIO",
+            vie: "CARDIO & HIIT",
+            sab: "GLÚTEO & FEMORAL"
+        };
+
+        let studentsList = [
+            { id: 1, name: "Pablo Thomas Saldarriaga Oyola", phone: "914774277", plan: "Hipertrofia 1 a 1", fee: 150, payType: "Mensual", dueDate: "30/11/2026", note: "¡Excelente ganancia muscular!", diet: { phase: "Volumen Limpio", kcal: 2800, meal1: "4 Huevos enteros + 80g Avena con plátano + 1 taza de café negro.", meal2: "200g Pechuga de pollo + 200g Arroz blanco + Ensalada verde." } },
+            { id: 2, name: "Carlos Ruiz", phone: "914774277", plan: "Pérdida de Grasa & Definición", fee: 150, payType: "Mensual", dueDate: "28/10/2026", note: "Constante y disciplinado" },
+            { id: 3, name: "Miguel Ángel Torres", phone: "987654321", plan: "Entrenamiento Semanal Intensivo", fee: 45, payType: "Semanal", dueDate: "25/10/2026", note: "Buen progreso" },
+            { id: 4, name: "Andrea Benítez", phone: "912345678", plan: "Entrenamiento Funcional & Cross", fee: 140, payType: "Mensual", dueDate: "22/10/2026", note: "Pendiente renovación" },
+            { id: 5, name: "Jorge Ramos", phone: "955443322", plan: "Hipertrofia 1 a 1", fee: 40, payType: "Semanal", dueDate: "20/10/2026", note: "Requiere atención" },
+            { id: 6, name: "Sonia Morales", phone: "944332211", plan: "Pérdida de Grasa & Definición", fee: 150, payType: "Mensual", dueDate: "30/10/2026", note: "Excelente técnica" },
+            { id: 7, name: "David Castro", phone: "933221100", plan: "Preparación Física Competencia", fee: 200, payType: "Mensual", dueDate: "29/10/2026", note: "Nivel avanzado" },
+            { id: 8, name: "Renzo Valdivia", phone: "922110099", plan: "Hipertrofia 1 a 1", fee: 150, payType: "Mensual", dueDate: "27/10/2026", note: "Muy dedicado" },
+            { id: 9, name: "Lucía Fernández", phone: "911009988", plan: "Grupos Reducidos (Fit)", fee: 35, payType: "Semanal", dueDate: "21/10/2026", note: "Faltó 2 clases" },
+            { id: 10, name: "Gaston Acurio S.", phone: "900998877", plan: "Pérdida de Grasa & Definición", fee: 150, payType: "Mensual", dueDate: "02/11/2026", note: "Constante" }
+        ];
+
+        function parseDateString(dateStr) {
+            if(!dateStr) return new Date();
+            const parts = dateStr.split('/');
+            if(parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+            return new Date(dateStr);
+        }
+
+        function getPaymentStatus(dueDateStr) {
+            const due = parseDateString(dueDateStr);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            due.setHours(0,0,0,0);
+            
+            const diffTime = due - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { status: 'expired', days: diffDays };
+            if (diffDays <= 3) return { status: 'warning', days: diffDays };
+            return { status: 'paid', days: diffDays };
+        }
+
+  let currentDay = 'lun';
+        let filterStatus = 'all';
+        let currentStudentId = 1; // NUEVO: Rastreador del atleta que tiene la sesión iniciada
+        let currentUserRole = 'student'; // NUEVO: Rastrea si es 'coach' o 'student'
+        window.onload = function() {
+            renderExercises(currentDay);
+            renderTrainerTable();
+            syncStudentView(currentStudentId);
+            
+            const bgVideo = document.getElementById('login-video');
+            if (bgVideo) bgVideo.playbackRate = 1.4;
+
+            const hour = new Date().getHours();
+            const greetingElement = document.getElementById('dynamic-greeting');
+            if (greetingElement) {
+                greetingElement.classList.remove('animate-pulse');
+                if (hour >= 5 && hour < 12) {
+                    greetingElement.innerText = "Buenos días, ¿listo para mutar? ☀️";
+                } else if (hour >= 12 && hour < 19) {
+                    greetingElement.innerText = "Buenas tardes, a romperla 💥";
+                } else {
+                    greetingElement.innerText = "La disciplina no duerme 🌙";
+                }
+            }
+        };
+
+   // =========================================================
+        // 1. FUNCIÓN DE LOGIN CON VALIDACIÓN DE CONTRASEÑA
+        // =========================================================
+        function handleAppLogin(provider) {
+            const userVal = document.getElementById('login-username')?.value.toLowerCase().trim() || provider || '';
+            const passVal = document.getElementById('login-password')?.value || ''; // ATRAPAMOS LA CONTRASEÑA
+            
+            const loginView = document.getElementById('view-login');
+            const btnText = document.getElementById('btn-login-text');
+            const btnIcon = document.getElementById('btn-login-icon');
+            const submitBtn = document.getElementById('btn-login-submit');
+            
+            // Efecto de carga
+            if(btnText && btnIcon && submitBtn) {
+                btnText.innerText = "Autenticando...";
+                btnIcon.className = "fa-solid fa-circle-notch fa-spin text-[10px]";
+                submitBtn.classList.add('opacity-80', 'cursor-wait');
+            }
+
+            setTimeout(() => {
+                const header = document.getElementById('app-header');
+                const main = document.getElementById('app-main');
+                const coachToggles = document.getElementById('coach-toggles');
+                const roleText = document.getElementById('header-role-text');
+
+                // MODO ADMINISTRADOR (Coach Omar)
+                if (userVal === 'coach' || userVal === 'omar' || userVal === 'admin') {
+                   currentUserRole = 'coach';
+                    if(loginView) loginView.classList.add('opacity-0');
+                    setTimeout(() => {
+                        if(loginView) loginView.classList.add('hidden');
+                        if(header) header.classList.remove('hidden');
+                        if(main) main.classList.remove('hidden');
+                        
+                        if(coachToggles) coachToggles.classList.remove('hidden');
+                        if(roleText) roleText.innerText = "Modo Administrador";
+                        
+                        switchView('trainer');
+                        showToast("Bienvenido Coach Omar 🏆", "fa-crown");
+                        
+                        // Restaurar botón
+                        if(btnText && btnIcon && submitBtn) {
+                            btnText.innerText = "Iniciar Sesión";
+                            btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
+                            submitBtn.classList.remove('opacity-80', 'cursor-wait');
+                            }
+                                               
+                    }, 500);
+                    return; // Terminamos aquí si es el admin
+                }
+
+                // MODO ATLETA: Buscamos al alumno exacto
+                currentUserRole = 'student';
+                let foundStudent = [...studentsList].reverse().find(s => 
+                    (s.email && s.email.toLowerCase() === userVal) || 
+                    s.phone === userVal || 
+                    s.name.toLowerCase() === userVal
+                );
+
+                // VALIDACIÓN DE CONTRASEÑA
+                let isAuthValid = false;
+                if (foundStudent) {
+                    if (provider === 'google' || provider === 'facebook') {
+                        isAuthValid = true; // Si entra con redes, pasa directo
+                    } else if (foundStudent.password) {
+                        isAuthValid = (foundStudent.password === passVal); // ¡DEBE coincidir la contraseña!
+                    } else {
+                        isAuthValid = true; // Atletas antiguos de prueba sin contraseña
+                    }
+                }
+
+                // SI TODO ES CORRECTO
+                if (isAuthValid && foundStudent) {
+                    if(loginView) loginView.classList.add('opacity-0');
+                    setTimeout(() => {
+                        if(loginView) loginView.classList.add('hidden');
+                        if(header) header.classList.remove('hidden');
+                        if(main) main.classList.remove('hidden');
+                        
+                        if(coachToggles) coachToggles.classList.add('hidden');
+                        if(roleText) roleText.innerText = "Modo Atleta";
+                        
+                        currentStudentId = foundStudent.id; // Asignamos la sesión a este atleta
+                        switchView('student');
+                        syncStudentView(currentStudentId);
+                        showToast("¡A entrenar con todo! 🔥", "fa-fire");
+                        
+                        if(btnText && btnIcon && submitBtn) {
+                            btnText.innerText = "Iniciar Sesión";
+                            btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
+                            submitBtn.classList.remove('opacity-80', 'cursor-wait');
+                        }
+                    }, 500);
+                } 
+                // SI ALGO FALLA (Rebote de seguridad)
+                else {
+                    alert("⚠️ Credenciales incorrectas o atleta no encontrado.");
+                    if(btnText && btnIcon && submitBtn) {
+                        btnText.innerText = "Iniciar Sesión";
+                        btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
+                        submitBtn.classList.remove('opacity-80', 'cursor-wait');
+                    }
+                }
+            }, 800);
+        }
+
+        function toggleAuthView(view) {
+            const loginBox = document.getElementById('login-box');
+            const registerBox = document.getElementById('register-box');
+            const greeting = document.getElementById('dynamic-greeting');
+            
+            if (view === 'register') {
+                if(loginBox) loginBox.classList.add('hidden');
+                if(registerBox) registerBox.classList.remove('hidden');
+                if(greeting) {
+                    greeting.innerText = "ÚNETE A LA ÉLITE 💪";
+                    greeting.classList.remove('animate-pulse');
+                }
+            } else {
+                if(registerBox) registerBox.classList.add('hidden');
+                if(loginBox) loginBox.classList.remove('hidden');
+                
+                if(greeting) {
+                    const hour = new Date().getHours();
+                    if (hour >= 5 && hour < 12) greeting.innerText = "Buenos días, ¿listo para mutar? ☀️";
+                    else if (hour >= 12 && hour < 19) greeting.innerText = "Buenas tardes, a romperla 💥";
+                    else greeting.innerText = "La disciplina no duerme 🌙";
+                }
+            }
+        }
+
+      // =========================================================
+        // 3. FUNCIÓN DE REGISTRO REAL (ANTI DOBLE-CLIC Y FANTASMAS)
+        // =========================================================
+        function handleAppRegister() {
+            const nameEl = document.getElementById('reg-name');
+            const lastNameEl = document.getElementById('reg-lastname');
+            const phoneEl = document.getElementById('reg-phone');
+            const emailEl = document.getElementById('reg-email');
+            const pass1El = document.getElementById('reg-pass');
+            const pass2El = document.getElementById('reg-pass-confirm');
+            
+            // ATRAPAMOS LOS DATOS INMEDIATAMENTE AFUERA PARA EVITAR ERRORES DE TIEMPO
+            const nameVal = nameEl ? nameEl.value.trim() : '';
+            const lastNameVal = lastNameEl ? lastNameEl.value.trim() : '';
+            const emailVal = emailEl ? emailEl.value.trim().toLowerCase() : '';
+            const pass1 = pass1El ? pass1El.value : '';
+            const pass2 = pass2El ? pass2El.value : '';
+            const phoneVal = phoneEl ? phoneEl.value.trim() : '';
+            
+            if(pass1 !== pass2) {
+                alert("Las contraseñas no coinciden. Revisa e inténtalo de nuevo.");
+                return; 
+            }
+
+            if(!nameVal || !lastNameVal || !phoneVal) {
+                alert("Por favor, ingresa tus nombres, apellidos y celular.");
+                return;
+            }
+
+            const studentExists = studentsList.find(s => s.phone === phoneVal);
+            if (studentExists) {
+                alert("⚠️ Tu número de celular ya está registrado. INICIA SESIÓN con tu celular y la contraseña que te asignó el Coach (por defecto es tu mismo número).");
+                return; 
+            }
+
+            const btnText = document.getElementById('btn-reg-text');
+            const btnIcon = document.getElementById('btn-reg-icon');
+            const submitBtn = document.getElementById('btn-reg-submit');
+            
+            // FILTRO ANTI DOBLE-CLIC: Si el botón ya está procesando, ignoramos nuevos clics
+            if (submitBtn && submitBtn.disabled) return;
+            
+            if(btnText && btnIcon && submitBtn) {
+                submitBtn.disabled = true; // BLOQUEAMOS EL BOTÓN INSTANTÁNEAMENTE
+                btnText.innerText = "Creando Atleta...";
+                btnIcon.className = "fa-solid fa-circle-notch fa-spin text-[10px]";
+                submitBtn.classList.add('opacity-80', 'cursor-wait');
+            }
+
+            setTimeout(() => {
+                const newId = studentsList.length > 0 ? Math.max(...studentsList.map(s => s.id)) + 1 : 1;
+                
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const todayStr = `${dd}/${mm}/${today.getFullYear()}`;
+
+                const newStudent = {
+                    id: newId,
+                    name: nameVal + ' ' + lastNameVal,
+                    phone: phoneVal,
+                    email: emailVal,
+                    password: pass1, 
+                    plan: "Por asignar", 
+                    fee: 0,
+                    dueDate: "Pendiente",
+                    status: "warning", 
+                    payType: "MENSUAL",
+                    note: "¡ATLETA NUEVO!",
+                    diet: { phase: "Sin asignar", kcal: "0", prot: "0", carb: "0", fat: "0", meal1: "", meal2: "", meal3: "", meal4: "" },
+                    measures: [{
+                        date: todayStr,
+                        weight: 0,
+                        fat: 0,
+                        waist: 0,
+                        arm: 0,
+                        note: "Cuenta creada"
+                    }]
+                };
+
+                studentsList.unshift(newStudent);
+                
+                if (typeof renderTrainerTable === 'function') renderTrainerTable();
+
+                if(btnText && btnIcon && submitBtn) {
+                    submitBtn.disabled = false; // DESBLOQUEAMOS EL BOTÓN AL TERMINAR
+                    btnText.innerText = "Comenzar Ahora";
+                    btnIcon.className = "fa-solid fa-user-plus text-[10px] transition-transform group-hover:scale-110";
+                    submitBtn.classList.remove('opacity-80', 'cursor-wait');
+                }
+                
+                if(nameEl) nameEl.value = '';
+                if(lastNameEl) lastNameEl.value = '';
+                if(phoneEl) phoneEl.value = '';
+                if(emailEl) emailEl.value = '';
+                if(pass1El) pass1El.value = '';
+                if(pass2El) pass2El.value = '';
+                
+                if (typeof showToast === 'function') showToast("¡Cuenta creada! Inicia sesión ahora.", "fa-check-circle");
+                if (typeof toggleAuthView === 'function') toggleAuthView('login');
+                
+            }, 1500); 
+        }
+        
+       function switchView(view) {
+            const studentView = document.getElementById('view-student');
+            const trainerView = document.getElementById('view-trainer');
+            const btnStudent = document.getElementById('btn-view-student');
+            const btnTrainer = document.getElementById('btn-view-trainer');
+            const btnSettings = document.getElementById('btn-student-settings'); // El botón de la tuerca
+
+            if (!studentView || !trainerView) return;
+
+            if (view === 'student') {
+                studentView.style.setProperty('display', 'block', 'important');
+                trainerView.style.setProperty('display', 'none', 'important');
+                if (btnStudent) btnStudent.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md";
+                if (btnTrainer) btnTrainer.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-brand-muted hover:text-white";
+                
+                // REGLA DE PRIVACIDAD: Si el coach está viendo al alumno, ocultamos los ajustes
+                if (currentUserRole === 'coach' && btnSettings) {
+                    btnSettings.classList.add('hidden');
+                } else if (btnSettings) {
+                    btnSettings.classList.remove('hidden');
+                }
+
+            } else {
+                studentView.style.setProperty('display', 'none', 'important');
+                trainerView.style.setProperty('display', 'block', 'important');
+                if (btnTrainer) btnTrainer.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md";
+                if (btnStudent) btnStudent.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-brand-muted hover:text-white";
+                
+                const weeklyModal = document.getElementById('modal-weekly-warning');
+                if(weeklyModal) weeklyModal.classList.add('hidden');
+
+                renderTrainerTable();
+            }
+        }
+
+        function openImageModal() {
+            const modal = document.getElementById('modal-image-fullscreen');
+            const targetImg = document.getElementById('fullscreen-img-target');
+            const sourceImg = document.getElementById('mot-banner-img');
+            if (modal && targetImg && sourceImg) {
+                targetImg.src = sourceImg.src;
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeImageModal() {
+            document.getElementById('modal-image-fullscreen').classList.add('hidden');
+        }
+
+    function syncStudentView(studentId = 1) {
+            currentStudentId = studentId; // Seteamos el usuario activo globalmente
+
+            const curStudent = studentsList.find(s => s.id == studentId) || studentsList[0];
+            if (!curStudent) return;
+
+            const nameParts = curStudent.name.split(' ');
+            const userInitials = nameParts.length >= 2 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : curStudent.name.substring(0,2).toUpperCase();
+
+            const avatarContainer = document.getElementById('student-avatar-container');
+            if (avatarContainer) {
+                if (curStudent.photo) {
+                    avatarContainer.innerHTML = `<img src="${curStudent.photo}" class="w-full h-full object-cover">`;
+                } else {
+                    avatarContainer.innerHTML = `<span id="student-initials-display">${userInitials}</span>`;
+                }
+            }
+
+            const nameDisplay = document.getElementById('student-name-display');
+            if(nameDisplay) nameDisplay.innerText = curStudent.name;
+            
+            const subtitleContainer = document.getElementById('student-subtitle-display');
+            const stPayInfo = getPaymentStatus(curStudent.dueDate);
+
+            if (subtitleContainer) {
+                // AQUÍ AGREGAMOS EL CORREO A LA INTERFAZ
+                const mailText = curStudent.email ? `<span class="text-zinc-400 font-normal ml-1 border-l border-zinc-700 pl-1"><i class="fa-solid fa-envelope text-[9px] mr-0.5"></i> ${curStudent.email}</span>` : '';
+                
+                let stStatusHTML = '';
+                if(stPayInfo.status === 'paid') stStatusHTML = '<span class="text-emerald-400 font-bold">● Al día</span>';
+                else if(stPayInfo.status === 'warning') stStatusHTML = `<span class="text-amber-400 font-bold">● Vence pronto (${stPayInfo.days}d)</span>`;
+                else stStatusHTML = '<span class="text-brand-red font-bold">● Vencido</span>';
+
+                subtitleContainer.innerHTML = `Entrenador: <span class="text-white font-semibold">Omar Ore</span> | ${stStatusHTML} ${mailText}`;
+            }
+
+            const weeklyModal = document.getElementById('modal-weekly-warning');
+            const trainerView = document.getElementById('view-trainer');
+            
+            if (weeklyModal) {
+                if (trainerView && trainerView.style.display === 'block') {
+                    weeklyModal.classList.add('hidden');
+                } else {
+                    const isWeeklyPlan = curStudent.payType === 'Semanal';
+                    const isMonthlyPlan = curStudent.payType === 'Mensual';
+
+                    if (stPayInfo.status === 'expired') {
+                        weeklyModal.classList.remove('hidden');
+                        const wText = document.getElementById('weekly-warning-days');
+                        if(wText) wText.innerText = 'VENCIDA (BLOQUEADO)';
+                    } else if (isWeeklyPlan && stPayInfo.status === 'warning' && stPayInfo.days <= 1) {
+                        weeklyModal.classList.remove('hidden');
+                        const wText = document.getElementById('weekly-warning-days');
+                        if(wText) wText.innerText = stPayInfo.days === 0 ? 'VENCE HOY' : 'VENCE MAÑANA';
+                    } else if (isMonthlyPlan && stPayInfo.status === 'warning' && stPayInfo.days <= 3) {
+                        weeklyModal.classList.remove('hidden');
+                        const wText = document.getElementById('weekly-warning-days');
+                        if(wText) wText.innerText = `VENCE EN ${stPayInfo.days} DÍAS`;
+                    } else {
+                        weeklyModal.classList.add('hidden');
+                    }
+                }
+            }
+
+            const planDisplay = document.getElementById('student-plan-display');
+            if(planDisplay) planDisplay.innerText = curStudent.plan;
+
+            const dueDisplay = document.getElementById('student-duedate-display');
+            if(dueDisplay) dueDisplay.innerHTML = `<i class="fa-regular fa-calendar-check text-brand-red mr-1"></i> ${curStudent.dueDate}`;
+            
+            const payTypeDisplay = document.getElementById('student-paytype-display');
+            if(payTypeDisplay) payTypeDisplay.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> ${curStudent.payType}`;
+            
+            const feeDisplay = document.getElementById('student-fee-display');
+            if(feeDisplay) feeDisplay.innerText = `S/ ${parseFloat(curStudent.fee).toFixed(2)}`;
+
+            const noteCell = document.getElementById('default-note-cell');
+            if (noteCell) noteCell.innerText = curStudent.note || "Progreso constante";
+
+            const dietSection = document.getElementById('section-nutrition');
+            if(dietSection) {
+                const diet = curStudent.diet || { 
+                    phase: "Sin asignar", kcal: "0", prot: "0", carb: "0", fat: "0", 
+                    meal1: "", meal2: "", meal3: "", meal4: "" 
+                };
+
+                let mealsHTML = '';
+                const mealsList = [
+                    { name: 'COMIDA 1 — DESAYUNO', time: '07:30 AM', content: diet.meal1 },
+                    { name: 'COMIDA 2 — MEDIA MAÑANA', time: '10:30 AM', content: diet.meal2 },
+                    { name: 'COMIDA 3 — ALMUERZO FUERTE', time: '01:30 PM', content: diet.meal3 },
+                    { name: 'COMIDA 4 — PRE / POST ENTRENO', time: '05:30 PM', content: diet.meal4 }
+                ];
+
+                let totalMeals = 0;
+                mealsList.forEach(m => { if (m.content && m.content.trim() !== '') totalMeals++; });
+
+                mealsList.forEach(m => {
+                    if (m.content && m.content.trim() !== '') {
+                        mealsHTML += `
+                            <div class="p-6 bg-[#09090b] border border-zinc-800/60 rounded-2xl cursor-pointer transition-all hover:border-brand-red/60 relative group shadow-lg" onclick="toggleMeal(this)">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="meal-title text-brand-red font-black text-[13px] tracking-wide transition-colors uppercase">${m.name}</span>
+                                        <span class="text-zinc-500 bg-[#121215] px-2 py-1 rounded-md text-[10px] font-bold">${m.time}</span>
+                                    </div>
+                                    <div class="meal-check w-7 h-7 rounded-md border-2 border-zinc-700 flex items-center justify-center transition-colors bg-[#121215]"></div>
+                                </div>
+                                <p class="meal-desc text-[15px] font-bold text-zinc-300 leading-relaxed pr-8 transition-colors">${m.content.replace(/\n/g, '<br>')}</p>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (mealsHTML === '') {
+                    mealsHTML = `<div class="p-6 bg-[#09090b] border border-zinc-800/60 rounded-2xl col-span-full"><p class="text-[15px] font-bold text-zinc-600">El Coach aún no ha asignado tu plan. 🏋️‍♂️</p></div>`;
+                }
+
+                dietSection.innerHTML = `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 mt-4">
+                        <div>
+                            <h3 class="text-xl font-black tracking-wide text-white uppercase font-display flex items-center">
+                                <i class="fa-solid fa-utensils text-brand-red mr-3"></i>PLAN NUTRICIONAL & BIO-HIDRATACIÓN
+                            </h3>
+                            <p class="text-[12px] text-brand-muted mt-1">Dieta de <span class="text-white font-bold">${diet.phase}</span> asignada por Coach Omar | Meta Diaria: <span class="text-white font-black">${diet.kcal} kcal</span></p>
+                        </div>
+                        <span class="text-[10px] border border-brand-red text-brand-red font-black px-4 py-1.5 rounded-full uppercase tracking-wider bg-transparent shadow-[0_0_15px_rgba(255,30,39,0.15)] whitespace-nowrap">${diet.phase}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+                        
+                        <div class="lg:col-span-2 bg-[#09090b] border border-zinc-800/60 rounded-2xl p-5 md:p-6 flex flex-col shadow-lg">
+                            <div class="flex justify-between items-center mb-5">
+                                <span class="text-[11px] font-black uppercase text-white tracking-widest">Objetivos de Macronutrientes</span>
+                                <span class="text-[10px] font-bold text-emerald-500">0/${totalMeals} Comidas listas</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-3 md:gap-4 h-full">
+                                <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
+                                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Proteína</span>
+                                    <p class="text-2xl md:text-3xl font-black text-brand-red font-display mt-1 mb-2">${diet.prot || '0'}g</p>
+                                    <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-brand-red w-[30%] shadow-[0_0_8px_#ff1e27]"></div></div>
+                                    <span class="text-[9px] text-zinc-500 font-medium">30% Cal</span>
+                                </div>
+                                
+                                <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
+                                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Carbos</span>
+                                    <p class="text-2xl md:text-3xl font-black text-amber-500 font-display mt-1 mb-2">${diet.carb || '0'}g</p>
+                                    <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-amber-500 w-[46%] shadow-[0_0_8px_#f59e0b]"></div></div>
+                                    <span class="text-[9px] text-zinc-500 font-medium">46% Cal</span>
+                                </div>
+                                
+                                <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
+                                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Grasas</span>
+                                    <p class="text-2xl md:text-3xl font-black text-emerald-500 font-display mt-1 mb-2">${diet.fat || '0'}g</p>
+                                    <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-emerald-500 w-[24%] shadow-[0_0_8px_#10b981]"></div></div>
+                                    <span class="text-[9px] text-zinc-500 font-medium">24% Cal</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#09090b] border border-zinc-800/60 rounded-2xl p-5 md:p-6 flex flex-col justify-between shadow-lg h-full">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="shrink-0 mr-2">
+                                    <span class="text-[11px] font-black uppercase text-white tracking-widest flex items-center"><i class="fa-solid fa-droplet text-[#0ea5e9] mr-2"></i>Hidratación</span>
+                                    <p class="text-[9px] text-zinc-500 mt-1">Meta: 3.5 Litros / día</p>
+                                </div>
+                                <span id="hydro-text" class="text-[13px] md:text-sm font-black text-[#0ea5e9] tracking-wide whitespace-nowrap shrink-0 text-right">1.50 / 3.5 L</span>
+                            </div>
+                            
+                            <div class="w-full h-1.5 bg-[#18181b] border border-zinc-800/50 rounded-full mb-6 overflow-hidden shadow-inner">
+                                <div id="hydro-bar" class="h-full bg-[#0ea5e9] w-[42%] shadow-[0_0_12px_#0ea5e9] transition-all duration-300"></div>
+                            </div>
+                            
+                            <div class="flex space-x-3 mt-auto">
+                                <button onclick="changeHydration(-0.25)" class="w-1/3 py-2 border border-zinc-700 bg-[#121215] text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-[11px] font-bold transition-all">-250ml</button>
+                                <button onclick="changeHydration(0.25)" class="w-2/3 py-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white rounded-lg text-xs font-black shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all flex justify-center items-center">+ Vaso (250ml)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+                        ${mealsHTML}
+                    </div>
+                `;
+            }
+
+                // --- LÓGICA DINÁMICA DE MEDIDAS ---
+            const measuresBody = document.getElementById('measures-history-body');
+            const measures = curStudent.measures || []; 
+            
+            if (measuresBody) {
+                measuresBody.innerHTML = ''; // Limpiamos la tabla estática HTML
+                
+                if (measures.length === 0) {
+                    measuresBody.innerHTML = `<tr><td colspan="7" class="py-4 px-3 text-center text-zinc-500 font-bold text-xs">Aún no hay medidas. Añade tu primer registro.</td></tr>`;
+                } else {
+                    measures.forEach((m, index) => {
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-zinc-900/50 transition-colors";
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 font-bold text-white">${m.date}</td>
+                            <td class="py-2.5 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
+                            <td class="py-2.5 px-3 text-white">${m.fat > 0 ? m.fat + ' %' : '--'}</td>
+                            <td class="py-2.5 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
+                            <td class="py-2.5 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
+                            <td class="py-2.5 px-3 text-emerald-400 font-bold text-[11px]">${m.note}</td>
+                            <td class="py-2.5 px-3 text-center">
+                                <button onclick="deleteMeasure(${curStudent.id}, ${index})" class="px-2 py-1 bg-zinc-800 hover:bg-brand-red text-white rounded-lg font-bold text-[10px] transition-colors">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        `;
+                        measuresBody.appendChild(tr);
+                    });
+                }
+            }
+
+            // Actualizar el "Último peso" en la tarjeta de arriba automáticamente
+            const topWeightSpan = document.querySelector('#view-student .fa-weight-scale + span');
+            if (topWeightSpan) {
+                const latestWeight = measures.length > 0 && measures[0].weight > 0 ? measures[0].weight + ' kg' : '--';
+                topWeightSpan.innerText = `Último peso: ${latestWeight}`;
+            }
+            // ----------------------------------
+
+            const curDate = new Date();
+            curDate.setHours(0,0,0,0);
+            const dueD = parseDateString(curStudent.dueDate);
+            dueD.setHours(0,0,0,0);
+            
+            let startDate = new Date(dueD);
+            if (curStudent.payType === 'Semanal') {
+                startDate.setDate(startDate.getDate() - 7);
+            } else {
+                startDate.setMonth(startDate.getMonth() - 1);
+            }
+            
+           // LÓGICA DE RACHA ACTIVA REPARADA (Evita el NaN si dice "Pendiente")
+            let rachaDays = 0;
+            
+            if (curStudent.dueDate && curStudent.dueDate.toLowerCase() !== "pendiente") {
+                const curDate = new Date();
+                curDate.setHours(0,0,0,0);
+                const dueD = parseDateString(curStudent.dueDate);
+                
+                // Verificamos que sea una fecha válida antes de hacer matemáticas
+                if (!isNaN(dueD.getTime())) {
+                    dueD.setHours(0,0,0,0);
+                    
+                    let startDate = new Date(dueD);
+                    if (curStudent.payType === 'Semanal') {
+                        startDate.setDate(startDate.getDate() - 7);
+                    } else {
+                        startDate.setMonth(startDate.getMonth() - 1);
+                    }
+                    
+                    rachaDays = Math.floor((curDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                    if (rachaDays < 0) rachaDays = 0; 
+                }
+            }
+            
+            const rachaDisplay = document.getElementById('student-racha-display');
+            if(rachaDisplay) rachaDisplay.innerText = `Racha: ${rachaDays} Días`;
+
+            const planMiniBadge = document.getElementById('student-plan-mini');
+            if(planMiniBadge) planMiniBadge.innerText = curStudent.plan || "Por asignar";
+
+            const btnText = document.getElementById('btn-start-workout-text');
+            if(btnText) btnText.innerText = `INICIAR ENTRENAMIENTO DE HOY - ${dayTags[currentDay] || 'RUTINA'}`;
+        } // <--- Asegúrate de que aquí cierre la función syncStudentView
+
+        function closeWeeklyWarning() {
+            const wModal = document.getElementById('modal-weekly-warning');
+            if(wModal) wModal.classList.add('hidden');
+        }
+
+        function selectDay(day) {
+            currentDay = day;
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.className = "day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-brand-muted hover:text-white";
+            });
+            const activeBtn = document.getElementById(`btn-day-${day}`);
+            if (activeBtn) {
+                activeBtn.className = "day-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-red text-white";
+            }
+            const dayTag = document.getElementById('workout-day-tag');
+            if(dayTag) dayTag.innerText = dayTags[day] || "RUTINA DEL DÍA";
+            
+            const btnText = document.getElementById('btn-start-workout-text');
+            if(btnText) btnText.innerText = `INICIAR ENTRENAMIENTO DE HOY - ${dayTags[day] || 'RUTINA'}`;
+
+            renderExercises(day);
+        }
+
+        let restTimerInterval = null;
+
+        function startRestTimer(seconds) {
+            clearInterval(restTimerInterval);
+            const timerContainer = document.getElementById('global-rest-timer');
+            const timerText = document.getElementById('global-rest-timer-text');
+            if(!timerContainer) return;
+            
+            timerContainer.classList.remove('translate-y-[200%]', 'opacity-0', 'pointer-events-none');
+            
+            let timeLeft = seconds;
+            if(timerText) timerText.innerText = `01:30`;
+            
+            restTimerInterval = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                if(timerText) timerText.innerText = `0${m}:${s < 10 ? '0'+s : s}`;
+                
+                if(timeLeft <= 0) {
+                    clearInterval(restTimerInterval);
+                    if(timerText) timerText.innerText = "¡A ENTRENAR!";
+                    setTimeout(() => closeRestTimer(), 3000); 
+                }
+            }, 1000);
+        }
+
+        function closeRestTimer() {
+            clearInterval(restTimerInterval);
+            const timerContainer = document.getElementById('global-rest-timer');
+            if(timerContainer) timerContainer.classList.add('translate-y-[200%]', 'opacity-0', 'pointer-events-none');
+        }
+
+        function renderExercises(day) {
+            const listContainer = document.getElementById('exercise-list');
+            if (!listContainer) return;
+
+            const exercises = workoutData[day] || [];
+            listContainer.innerHTML = '';
+
+            const currentActiveIndex = exercises.findIndex(e => !e.completed);
+
+            exercises.forEach((ex, index) => {
+                const isActive = (index === currentActiveIndex);
+                const card = document.createElement('div');
+                
+                let cardStyles = '';
+                if (ex.completed) {
+                    cardStyles = 'bg-emerald-900/10 border-emerald-500/30 opacity-60';
+                } else if (isActive) {
+                    cardStyles = 'bg-[#15151a] border-brand-red/60 shadow-[0_0_15px_rgba(255,30,39,0.2)]';
+                } else {
+                    cardStyles = 'bg-[#101014] border-zinc-800/80 hover:border-brand-red/40 shadow-sm';
+                }
+
+                card.className = `p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group relative overflow-hidden ${cardStyles}`;
+                
+                card.innerHTML = `
+                    ${isActive ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-red"></div>' : ''}
+                    <div class="flex items-center space-x-4 flex-1 cursor-pointer pl-1" onclick="toggleExercise(${ex.id})">
+                        <div class="${ex.completed ? 'w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center group-hover:border-brand-red transition-colors'} shrink-0">
+                            ${ex.completed ? '<i class="fa-solid fa-check text-[10px] font-black"></i>' : ''}
+                        </div>
+                        <div class="flex-1 py-1">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-sm font-black text-white ${ex.completed ? 'line-through text-zinc-500' : 'group-hover:text-brand-red transition-colors'}">${ex.name}</h4>
+                                ${isActive ? '<span class="text-[9px] bg-brand-red text-white font-black px-2 py-0.5 rounded uppercase tracking-wider animate-pulse">En curso</span>' : ''}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                <span class="text-[10px] bg-brand-redDark/20 border border-brand-red/20 text-brand-red font-bold px-2 py-0.5 rounded flex items-center"><i class="fa-solid ${ex.icon} mr-1"></i>${ex.sets}</span>
+                                <span class="text-[10px] bg-zinc-800 text-zinc-300 font-bold px-2 py-0.5 rounded">${ex.reps}</span>
+                                <span class="text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-500 font-bold px-2 py-0.5 rounded flex items-center"><i class="fa-solid fa-weight-hanging mr-1"></i>${ex.weight}</span>
+                                <span class="text-[10px] text-zinc-500 flex items-center font-medium"><i class="fa-regular fa-clock mr-1"></i>${ex.rest}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+            updateWorkoutProgress();
+        }
+
+        function toggleExercise(id) {
+            const exercises = workoutData[currentDay];
+            const ex = exercises.find(item => item.id === id);
+            if (ex) {
+                ex.completed = !ex.completed;
+                renderExercises(currentDay);
+                
+                if(ex.completed) {
+                    startRestTimer(90);
+                } else {
+                    closeRestTimer();
+                }
+            }
+        }
+
+        function updateWorkoutProgress() {
+            const exercises = workoutData[currentDay] || [];
+            if (exercises.length === 0) return;
+            const completedCount = exercises.filter(e => e.completed).length;
+            const percentage = Math.round((completedCount / exercises.length) * 100);
+
+            const pctText = document.getElementById('workout-percentage');
+            if(pctText) pctText.innerText = `${percentage}% COMPLETADO`;
+            
+            const fill = document.getElementById('workout-progress-fill');
+            if(fill) fill.style.width = `${percentage}%`;
+
+            const btnFinish = document.getElementById('btn-finish-workout');
+            if(btnFinish) {
+                if (percentage === 100) {
+                    btnFinish.disabled = false;
+                    btnFinish.className = "w-full mt-5 py-3.5 bg-brand-red hover:bg-brand-redDark text-white font-extrabold rounded-xl transition-all cursor-pointer uppercase tracking-wider text-sm flex items-center justify-center space-x-2 glow-red";
+                } else {
+                    btnFinish.disabled = true;
+                    btnFinish.className = "w-full mt-5 py-3.5 bg-zinc-800 text-zinc-500 font-extrabold rounded-xl transition-all cursor-not-allowed uppercase tracking-wider text-sm flex items-center justify-center space-x-2";
+                }
+            }
+        }
+
+        function finishWorkout() {
+            showToast("¡Excelente entrenamiento! Rutina guardada. 🔥", "fa-trophy");
+        }
+
+        function renderTrainerTable() {
+            const tableBody = document.getElementById('trainer-students-table');
+            const searchInput = document.getElementById('student-search-input');
+            if (!tableBody) return;
+
+            const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+            tableBody.innerHTML = '';
+
+            let filtered = studentsList.filter(s => {
+                const matchesName = s.name.toLowerCase().includes(searchVal);
+                const payInfo = getPaymentStatus(s.dueDate);
+                if (filterStatus === 'all') return matchesName;
+                if (filterStatus === 'paid') return matchesName && payInfo.status === 'paid';
+                if (filterStatus === 'due') return matchesName && (payInfo.status === 'warning' || payInfo.status === 'expired');
+                return false;
+            });
+
+            filtered.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-900/50 transition-colors";
+                
+                const payInfo = getPaymentStatus(s.dueDate);
+                let statusBadge = '';
+                if(payInfo.status === 'paid') {
+                    statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase"><i class="fa-solid fa-circle-check mr-1"></i>AL DÍA</span>`;
+                } else if(payInfo.status === 'warning') {
+                    statusBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase"><i class="fa-solid fa-clock mr-1"></i>VENCE EN ${payInfo.days}D</span>`;
+                } else {
+                    statusBadge = `<span class="bg-brand-red/10 text-brand-red border border-brand-red/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase"><i class="fa-solid fa-lock mr-1"></i>VENCIDO</span>`;
+                }
+
+                const payTypeBadge = s.payType === 'Semanal'
+                    ? `<span class="bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Semanal</span>`
+                    : `<span class="bg-purple-500/10 text-purple-400 border border-purple-500/30 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Mensual</span>`;
+
+                let waText = "";
+                if (s.payType === 'Semanal') {
+                    waText = `Hola ${s.name}, te saluda el Coach Omar Ore 💪. Te recuerdo que tu cuota semanal de S/ ${s.fee} vence este SÁBADO a las 05:00 A.M. ¡Mantén tu rutina al día! 🔥`;
+                } else {
+                    waText = `Hola ${s.name}, te saluda el Coach Omar Ore 💪. Te recuerdo tu pago mensual de S/ ${s.fee} que vence el ${s.dueDate}. ¡Vamos con todo! 🔥`;
+                }
+                const waMessage = encodeURIComponent(waText);
+
+                tr.innerHTML = `
+                    <td class="py-4 px-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-9 h-9 rounded-full bg-brand-red/20 border border-brand-red text-brand-red flex items-center justify-center text-sm font-black shadow-inner shrink-0">
+                                ${s.name.charAt(0)}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-white cursor-pointer hover:text-brand-red transition-colors text-sm" onclick="viewStudentProfile(${s.id})" title="Ver como alumno">${s.name}</span>
+                                <span class="text-zinc-500 text-[11px] italic" title="${s.note}">${s.note}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-3 text-brand-muted text-sm font-medium">${s.plan}</td>
+                    <td class="py-4 px-3 font-bold text-white text-sm">S/ ${s.fee}</td>
+                    <td class="py-4 px-3">${payTypeBadge}</td>
+                    <td class="py-4 px-3 text-zinc-300 font-mono text-sm">${s.dueDate}</td>
+                    <td class="py-4 px-3 text-center">${statusBadge}</td>
+                    <td class="py-4 px-3 text-center space-x-1.5 whitespace-nowrap">
+                        <a href="https://wa.me/51${s.phone}?text=${waMessage}" target="_blank" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1 shadow transition-all" title="Enviar Alerta WhatsApp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                        <button onclick="openDietModal(${s.id})" class="px-3 py-2 bg-zinc-800 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow transition-colors" title="Asignar Dieta">
+                            <i class="fa-solid fa-utensils"></i>
+                        </button>
+                        <button onclick="renewStudentPayment(${s.id})" class="px-3 py-2 bg-zinc-800 hover:bg-blue-600 text-white rounded-lg font-bold text-xs shadow transition-colors" title="Renovar Pago">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                        </button>
+                        <button onclick="openEditStudentModal(${s.id})" class="px-3 py-2 bg-zinc-800 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow transition-colors" title="Editar">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteStudent(${s.id})" class="px-3 py-2 bg-zinc-800 hover:bg-brand-red text-white rounded-lg font-bold text-xs shadow transition-colors" title="Eliminar">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            updateTrainerStats();
+        }
+
+        function viewStudentProfile(id) {
+            switchView('student');
+            syncStudentView(id);
+        }
+
+        function updateTrainerStats() {
+            const total = studentsList.length;
+            const paid = studentsList.filter(s => getPaymentStatus(s.dueDate).status === 'paid').length;
+            const due = studentsList.filter(s => {
+                const st = getPaymentStatus(s.dueDate).status;
+                return st === 'warning' || st === 'expired';
+            }).length;
+            const revenue = studentsList.reduce((acc, curr) => acc + parseFloat(curr.fee), 0);
+
+            const totEl = document.getElementById('stat-total-students');
+            if(totEl) totEl.innerText = total;
+            
+            const paidEl = document.getElementById('stat-paid-students');
+            if(paidEl) paidEl.innerText = paid;
+            
+            const pendingEl = document.getElementById('stat-pending-students');
+            if(pendingEl) pendingEl.innerText = due;
+            
+            const revEl = document.getElementById('stat-total-revenue');
+            if(revEl) revEl.innerText = `S/ ${revenue.toLocaleString()}`;
+
+            const paidRate = document.getElementById('stat-paid-rate');
+            const incomeBar = document.getElementById('stat-income-bar');
+            const rate = total > 0 ? Math.round((paid / total) * 100) : 0;
+            
+            if(paidRate) paidRate.innerText = `Tasa al día: ${rate}%`;
+            if(incomeBar) incomeBar.style.width = `${rate}%`;
+
+            const btnAll = document.getElementById('btn-filter-all');
+            if(btnAll) btnAll.innerText = `Todos (${total})`;
+        }
+
+        function setFilterStatus(status) {
+            filterStatus = status;
+            
+            document.querySelectorAll('.filter-status-btn').forEach(btn => {
+                btn.className = "filter-status-btn px-4 py-1.5 text-[11px] font-bold rounded-full bg-transparent border border-zinc-700 text-zinc-400 hover:text-white whitespace-nowrap transition-all";
+            });
+            
+            const activeClass = "filter-status-btn px-4 py-1.5 text-[11px] font-bold rounded-full bg-brand-red text-white whitespace-nowrap shadow-[0_0_10px_rgba(255,30,39,0.3)] transition-all";
+            
+            if (status === 'all') document.getElementById('btn-filter-all').className = activeClass;
+            if (status === 'paid') document.getElementById('btn-filter-paid').className = activeClass;
+            if (status === 'due') document.getElementById('btn-filter-due').className = activeClass;
+            
+            renderTrainerTable();
+        }
+
+        function filterStudents() { renderTrainerTable(); }
+
+        function renewStudentPayment(id) {
+            const student = studentsList.find(s => s.id === id);
+            if(!student) return;
+            
+            const currentDue = parseDateString(student.dueDate);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            let baseDate = currentDue < today ? today : currentDue;
+
+            if(student.payType === 'Semanal') baseDate.setDate(baseDate.getDate() + 7);
+            else baseDate.setMonth(baseDate.getMonth() + 1);
+            
+            const dd = String(baseDate.getDate()).padStart(2, '0');
+            const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+            student.dueDate = `${dd}/${mm}/${baseDate.getFullYear()}`;
+            
+            renderTrainerTable();
+            syncStudentView(student.id);
+            showToast(`Suscripción renovada a ${student.name} 💰`, "fa-sack-dollar");
+        }
+
+        let hydrationLevel = 1.5;
+
+        function changeHydration(amount) {
+            hydrationLevel += amount;
+            if (hydrationLevel < 0) hydrationLevel = 0;
+            if (hydrationLevel > 3.5) hydrationLevel = 3.5;
+            
+            const hydroText = document.getElementById('hydro-text');
+            const hydroBar = document.getElementById('hydro-bar');
+            
+            if(hydroText) hydroText.innerText = `${hydrationLevel.toFixed(1)} / 3.5 L`;
+            if(hydroBar) hydroBar.style.width = `${(hydrationLevel / 3.5) * 100}%`;
+        }
+
+        function toggleMeal(element) {
+            element.classList.toggle('bg-emerald-900/10');
+            element.classList.toggle('border-emerald-500/30');
+            element.classList.toggle('border-zinc-800/80');
+            
+            const title = element.querySelector('.meal-title');
+            const desc = element.querySelector('.meal-desc');
+            const check = element.querySelector('.meal-check');
+            
+            if(title) {
+                title.classList.toggle('line-through');
+                title.classList.toggle('text-zinc-500');
+                title.classList.toggle('text-brand-red');
+            }
+            if(desc) {
+                desc.classList.toggle('line-through');
+                desc.classList.toggle('text-zinc-500');
+                desc.classList.toggle('text-white');
+            }
+            
+            if(check) {
+                if (check.innerHTML.includes('fa-check')) {
+                    check.innerHTML = '';
+                    check.className = 'meal-check w-7 h-7 rounded-md border-2 border-zinc-600 flex items-center justify-center transition-colors';
+                } else {
+                    check.innerHTML = '<i class="fa-solid fa-check text-xs font-black"></i>';
+                    check.className = 'meal-check w-7 h-7 rounded-md bg-brand-red border border-brand-red text-white flex items-center justify-center shadow-[0_0_15px_rgba(255,30,39,0.4)] transition-colors';
+                }
+            }
+        }
+
+        function openDietModal(id) {
+            const student = studentsList.find(s => s.id === id);
+            if (!student) return;
+            
+            document.getElementById('diet-student-id').value = student.id;
+            const diet = student.diet || { phase: "", kcal: "", prot: "", carb: "", fat: "", meal1: "", meal2: "", meal3: "", meal4: "" };
+            
+            document.getElementById('diet-phase').value = diet.phase || "";
+            document.getElementById('diet-kcal').value = diet.kcal || "";
+            document.getElementById('diet-prot').value = diet.prot || "";
+            document.getElementById('diet-carb').value = diet.carb || "";
+            document.getElementById('diet-fat').value = diet.fat || "";
+            document.getElementById('diet-meal1').value = diet.meal1 || "";
+            document.getElementById('diet-meal2').value = diet.meal2 || "";
+            document.getElementById('diet-meal3').value = diet.meal3 || "";
+            document.getElementById('diet-meal4').value = diet.meal4 || "";
+            
+            const dm = document.getElementById('modal-diet-builder');
+            if(dm) dm.classList.remove('hidden');
+        }
+
+        function closeDietModal() {
+            const dm = document.getElementById('modal-diet-builder');
+            if(dm) dm.classList.add('hidden');
+        }
+
+        function saveDiet() {
+            const id = document.getElementById('diet-student-id').value;
+            const student = studentsList.find(s => s.id == id);
+            if (!student) return;
+            
+            student.diet = {
+                phase: document.getElementById('diet-phase').value,
+                kcal: document.getElementById('diet-kcal').value,
+                prot: document.getElementById('diet-prot').value,
+                carb: document.getElementById('diet-carb').value,
+                fat: document.getElementById('diet-fat').value,
+                meal1: document.getElementById('diet-meal1').value,
+                meal2: document.getElementById('diet-meal2').value,
+                meal3: document.getElementById('diet-meal3').value,
+                meal4: document.getElementById('diet-meal4').value
+            };
+            
+            closeDietModal();
+            showToast("Dieta actualizada correctamente", "fa-utensils");
+            syncStudentView(student.id);
+        }
+
+        function deleteStudent(id) {
+            const student = studentsList.find(s => s.id === id);
+            if (student) {
+                studentsList = studentsList.filter(s => s.id !== id);
+                renderTrainerTable();
+                showToast(`Alumno eliminado.`, "fa-trash-can");
+            }
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('student-edit-id').value = '';
+            document.getElementById('modal-student-title').innerHTML = `<i class="fa-solid fa-user-plus text-brand-red mr-2"></i>Registrar Nuevo Alumno`;
+            document.getElementById('new-student-name').value = '';
+            document.getElementById('new-student-phone').value = '914774277';
+            document.getElementById('new-student-fee').value = '150';
+            
+            const hoy = new Date();
+            hoy.setMonth(hoy.getMonth() + 1);
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            document.getElementById('new-student-duedate').value = `${dd}/${mm}/${hoy.getFullYear()}`;
+            
+            document.getElementById('new-student-note').value = 'Inicio de asesoría';
+            const m = document.getElementById('modal-student');
+            if(m) m.classList.remove('hidden');
+        }
+
+        function openEditStudentModal(id) {
+            const student = studentsList.find(s => s.id === id);
+            if (student) {
+                document.getElementById('student-edit-id').value = student.id;
+                document.getElementById('modal-student-title').innerHTML = `<i class="fa-solid fa-user-pen text-brand-red mr-2"></i>Editar Alumno: ${student.name}`;
+                document.getElementById('new-student-name').value = student.name;
+                document.getElementById('new-student-phone').value = student.phone;
+                document.getElementById('new-student-plan').value = student.plan;
+                document.getElementById('new-student-paytype').value = student.payType || 'Mensual';
+                document.getElementById('new-student-fee').value = student.fee;
+                document.getElementById('new-student-duedate').value = student.dueDate;
+                document.getElementById('new-student-note').value = student.note || '';
+                
+                const m = document.getElementById('modal-student');
+                if(m) m.classList.remove('hidden');
+            }
+        }
+
+        function closeAddStudentModal() { 
+            const m = document.getElementById('modal-student');
+            if(m) m.classList.add('hidden'); 
+        }
+
+   // =========================================================
+        // FUNCIÓN DEL COACH PARA CREAR/EDITAR ALUMNOS
+        // =========================================================
+        function saveStudentData() {
+            const editId = document.getElementById('student-edit-id').value;
+            const name = document.getElementById('new-student-name').value;
+            const phone = document.getElementById('new-student-phone').value.trim() || "000000000";
+            const plan = document.getElementById('new-student-plan').value;
+            const payType = document.getElementById('new-student-paytype').value;
+            const fee = parseFloat(document.getElementById('new-student-fee').value) || 150;
+            const dueDate = document.getElementById('new-student-duedate').value || "30/11/2026";
+            const note = document.getElementById('new-student-note').value || "Inicio de asesoría";
+
+            if (!name) { 
+                showToast("Ingresa el nombre del alumno", "fa-triangle-exclamation");
+                return; 
+            }
+
+            let targetId = editId;
+
+            if (editId) {
+                // ESTÁ EDITANDO UN ALUMNO EXISTENTE
+                const student = studentsList.find(s => s.id == editId);
+                if (student) {
+                    student.name = name;
+                    student.phone = phone;
+                    student.plan = plan;
+                    student.payType = payType;
+                    student.fee = fee;
+                    student.dueDate = dueDate;
+                    student.note = note;
+                    showToast(`Datos actualizados.`, "fa-user-check");
+                }
+            } else {
+                // ESTÁ CREANDO UN ALUMNO NUEVO
+                // --- MAGIA: FILTRO ANTI-DUPLICADOS PARA EL COACH ---
+                const studentExists = studentsList.find(s => s.phone === phone);
+                if (studentExists && phone !== "000000000") {
+                    alert("⚠️ Ya existe un atleta registrado con el celular " + phone + ". Por favor, búscalo en tu tabla usando la barra de búsqueda para asignarle su plan.");
+                    return; // Detenemos la creación para evitar el duplicado
+                }
+                // ---------------------------------------------------
+
+                const newId = studentsList.length > 0 ? Math.max(...studentsList.map(s => s.id)) + 1 : 1;
+                targetId = newId;
+                
+                studentsList.unshift({
+                    id: newId,
+                    name: name,
+                    phone: phone,
+                    email: "", // El coach no le pide correo de inicio
+                    password: phone, // <--- LA CONTRASEÑA POR DEFECTO ES SU CELULAR
+                    plan: plan,
+                    payType: payType,
+                    fee: fee,
+                    dueDate: dueDate,
+                    note: note,
+                    diet: { phase: "Sin asignar", kcal: "0", prot: "0", carb: "0", fat: "0", meal1: "", meal2: "", meal3: "", meal4: "" }
+                });
+                
+                // Le avisamos al coach que la clave es el celular
+                showToast(`Registrado. Su clave temporal es su celular.`, "fa-user-check");
+            }
+
+            renderTrainerTable();
+            syncStudentView(targetId);
+            closeAddStudentModal();
+        }
+
+        function openAddMeasureModal() { 
+            const m = document.getElementById('modal-measure');
+            if(m) m.classList.remove('hidden'); 
+        }
+        function closeAddMeasureModal() { 
+            const m = document.getElementById('modal-measure');
+            if(m) m.classList.add('hidden'); 
+        }
+        
+       // =========================================================
+        // FUNCIONES DE MEDIDAS (DINÁMICAS POR ALUMNO)
+        // =========================================================
+        function saveMeasureRecord() {
+            const w = document.getElementById('input-weight').value;
+            const fat = document.getElementById('input-fat').value || "0";
+            const waist = document.getElementById('input-waist').value || "0";
+            const arm = document.getElementById('input-arm').value || "0";
+
+            if (!w) { 
+                showToast("Ingresa el peso corporal", "fa-triangle-exclamation");
+                return; 
+            }
+            
+            // Buscamos al alumno que tiene la sesión iniciada
+            let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
+            let student = studentsList.find(s => s.id === activeId);
+            
+            if (student) {
+                // Si el alumno no tiene el arreglo de medidas, se lo creamos
+                if (!student.measures) student.measures = [];
+                
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                
+                // Usamos unshift para que el registro más nuevo aparezca arriba
+                student.measures.unshift({
+                    date: `${dd}/${mm}/${yyyy}`,
+                    weight: parseFloat(w),
+                    fat: parseFloat(fat),
+                    waist: parseFloat(waist),
+                    arm: parseFloat(arm),
+                    note: "Nuevo registro"
+                });
+                
+                syncStudentView(activeId); // Sincroniza la tabla al instante
+            }
+            
+            closeAddMeasureModal();
+            showToast("Medidas guardadas con éxito.", "fa-ruler-combined");
+            
+            // Limpiamos el formulario
+            document.getElementById('input-weight').value = '';
+            document.getElementById('input-fat').value = '';
+            document.getElementById('input-waist').value = '';
+            document.getElementById('input-arm').value = '';
+        }
+
+        // Nueva función para borrar de la base de datos
+        function deleteMeasure(studentId, measureIndex) {
+            let student = studentsList.find(s => s.id === studentId);
+            if (student && student.measures) {
+                student.measures.splice(measureIndex, 1); // Lo borra de la memoria
+                syncStudentView(studentId); // Redibuja la tabla al instante
+                showToast("Registro eliminado.", "fa-trash-can");
+            }
+        }
+
+        function showToast(message, icon = "fa-circle-check") {
+            const toast = document.getElementById('toast');
+            if(!toast) return;
+            const tMsg = document.getElementById('toast-message');
+            if(tMsg) tMsg.innerText = message;
+            const tIcon = document.getElementById('toast-icon');
+            if(tIcon) tIcon.className = `fa-solid ${icon} text-lg`;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+            }, 3000);
+        }
+
+        let temporaryProfileImage = null;
+
+ // =========================================================
+        // FUNCIONES DEL PERFIL DEL ALUMNO (AJUSTES)
+        // =========================================================
+
+        // 1. ABRIR MODAL
+        function openStudentSettingsModal() {
+            try {
+                // Usamos typeof por seguridad por si la variable global no cargó
+                let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
+                const student = studentsList.find(s => s.id === activeId) || studentsList[0];
+                
+                if (!student) return;
+
+                const nameEl = document.getElementById('edit-my-name');
+                const phoneEl = document.getElementById('edit-my-phone');
+                const emailEl = document.getElementById('edit-my-email');
+                
+                if (nameEl) nameEl.value = student.name || "";
+                if (phoneEl) phoneEl.value = student.phone || "";
+                if (emailEl) emailEl.value = student.email || "";
+
+                const modalPreview = document.getElementById('modal-avatar-preview');
+                const parts = student.name.split(' ');
+                const initials = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : student.name.substring(0,2).toUpperCase();
+                
+                if (student.photo && modalPreview) {
+                    modalPreview.innerHTML = `<img src="${student.photo}" class="w-full h-full object-cover">`;
+                } else if(modalPreview) {
+                    modalPreview.innerHTML = `<span id="modal-avatar-initials">${initials}</span>`;
+                }
+
+                const m = document.getElementById('modal-student-settings');
+                if(m) m.classList.remove('hidden');
+            } catch (error) {
+                console.error("Error al abrir perfil:", error);
+            }
+        }
+
+        // 2. CERRAR MODAL (Forzado)
+        function closeStudentSettingsModal() {
+            const m = document.getElementById('modal-student-settings');
+            if(m) m.classList.add('hidden');
+        }
+
+        // 3. PREVISUALIZAR FOTO
+        function previewProfilePhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    temporaryProfileImage = e.target.result;
+                    const modalPreview = document.getElementById('modal-avatar-preview');
+                    if(modalPreview) modalPreview.innerHTML = `<img src="${temporaryProfileImage}" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 4. GUARDAR CAMBIOS (Con cierre obligatorio)
+        function saveStudentProfileChanges() {
+            try {
+                const nameEl = document.getElementById('edit-my-name');
+                const phoneEl = document.getElementById('edit-my-phone');
+                const emailEl = document.getElementById('edit-my-email');
+                
+                const newName = nameEl ? nameEl.value.trim() : "";
+                const newPhone = phoneEl ? phoneEl.value.trim() : "";
+                const newEmail = emailEl ? emailEl.value.trim() : "";
+
+                if (!newName) {
+                    showToast("El nombre no puede estar vacío", "fa-triangle-exclamation");
+                    return; // Si no hay nombre, se detiene aquí pero NO cierra la ventana para que corrija
+                }
+
+                let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
+                let student = studentsList.find(s => s.id === activeId) || studentsList[0];
+                
+                if (student) {
+                    student.name = newName;
+                    student.phone = newPhone;
+                    student.email = newEmail;
+                    if (temporaryProfileImage) {
+                        student.photo = temporaryProfileImage;
+                        temporaryProfileImage = null; // Limpiamos la temporal
+                    }
+                }
+
+                // Sincronizamos la vista si las funciones existen
+                if (typeof syncStudentView === 'function') syncStudentView(student.id);
+                if (typeof renderTrainerTable === 'function') renderTrainerTable();
+                
+                showToast("Perfil actualizado con éxito", "fa-user-check");
+                
+            } catch (error) {
+                console.error("Error al guardar perfil:", error);
+            } finally {
+                // El 'finally' garantiza que la ventana se oculte SIEMPRE al darle a guardar, 
+                // sin importar si hubo un error matemático o de variables arriba.
+                closeStudentSettingsModal();
+            }
+        }
+
+        function openMediaModal(type, src, title) {
+            if (type === 'image') {
+                const modal = document.getElementById('modal-image-fullscreen');
+                const targetImg = document.getElementById('fullscreen-img-target');
+                if (modal && targetImg) {
+                    targetImg.src = src;
+                    modal.classList.remove('hidden');
+                }
+            } else if (type === 'video') {
+                const modal = document.getElementById('modal-video-player');
+                const videoTarget = document.getElementById('video-modal-target');
+                const titleEl = document.getElementById('video-modal-title');
+
+                const previewVideo = document.querySelector("video[src*='preview']");
+                if (previewVideo) previewVideo.pause();
+
+                if (modal && videoTarget) {
+                    videoTarget.pause();
+                    if (titleEl) titleEl.innerText = title || 'Entrenamiento Intensivo Omar Fit 🔥';
+                    const finalSource = videoCache[src] ? videoCache[src] : src;
+                    videoTarget.src = finalSource;
+                    modal.classList.remove('hidden');
+                    videoTarget.play().catch(err => console.log("Play fluida:", err));
+                }
+            }
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('modal-video-player');
+            const videoTarget = document.getElementById('video-modal-target');
+
+            if (videoTarget) {
+                videoTarget.pause();
+                videoTarget.src = "";
+            }
+            if (modal) modal.classList.add('hidden');
+        }
+
+        const galleryFiles = [
+            { type: 'image', src: 'assets/foto principal.jpg', title: 'Familia Fierrera Omar Fit' },
+            { type: 'image', src: 'assets/gym athletic.jpg', title: 'Entrenamiento Gym Athletic' },
+            { type: 'image', src: 'assets/foto-concurso.jpg', title: 'Concurso Omar Fit' },
+            { type: 'image', src: 'assets/logo.jpeg', title: 'Logo Oficial Omar Fit' },
+            { type: 'video', src: 'vid/video1.mp4', title: 'Entrenamiento Intensivo Omar Fit' }
+        ];
+
+        function openFullGalleryModal(filterCategory) {
+            const modal = document.getElementById('modal-full-gallery');
+            const titleEl = document.getElementById('full-gallery-title');
+            const gridContainer = document.getElementById('full-gallery-grid');
+
+            if (!modal || !gridContainer) return;
+            gridContainer.innerHTML = '';
+
+            let filtered = galleryFiles;
+            if (filterCategory === 'photos') {
+                filtered = galleryFiles.filter(f => f.type === 'image');
+                if (titleEl) titleEl.innerText = "Galería de Fotos - Omar Fit";
+            } else if (filterCategory === 'videos') {
+                filtered = galleryFiles.filter(f => f.type === 'video');
+                if (titleEl) titleEl.innerText = "Galería de Videos - Omar Fit";
+            } else {
+                if (titleEl) titleEl.innerText = "Galería Multimedia Completa - Omar Fit";
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "relative group rounded-xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg";
+                
+                if (item.type === 'image') {
+                    card.onclick = () => { closeFullGalleryModal(); openMediaModal('image', item.src, item.title); };
+                    card.innerHTML = `
+                        <img src="${item.src}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
+                        <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md border border-zinc-700 backdrop-blur-md flex items-center space-x-1">
+                            <i class="fa-solid fa-camera text-brand-red"></i>
+                            <span>Foto</span>
+                        </span>
+                    `;
+                } else {
+                    card.onclick = () => { closeFullGalleryModal(); openMediaModal('video', item.src, item.title); };
+                    card.innerHTML = `
+                        <img src="assets/foto principal.jpg" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <div class="w-10 h-10 bg-brand-red text-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform glow-red">
+                                <i class="fa-solid fa-play text-sm ml-0.5"></i>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow flex items-center space-x-1">
+                            <i class="fa-solid fa-video"></i>
+                            <span>Video</span>
+                        </span>
+                    `;
+                }
+                gridContainer.appendChild(card);
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeFullGalleryModal() {
+            const m = document.getElementById('modal-full-gallery');
+            if(m) m.classList.add('hidden');
+        }
+
+      // =========================================================
+        // FUNCIÓN PARA EXPORTAR A CSV (FORMATO EXCEL PERFECTO)
+        // =========================================================
+        function exportToCSV() {
+            if (studentsList.length === 0) {
+                showToast("No hay atletas para exportar.", "fa-triangle-exclamation");
+                return;
+            }
+
+            // 1. Cabeceras del Excel
+            const headers = ["ID", "ATLETA", "CELULAR", "CORREO", "PLAN", "MODALIDAD", "CUOTA (S/)", "VENCIMIENTO", "ESTADO", "NOTA"];
+            
+            // 2. Mapeamos la lista de atletas para crear las filas
+            const rows = studentsList.map(s => {
+                // Calculamos el estado actual para que en el Excel diga si está al día o vencido
+                const payInfo = getPaymentStatus(s.dueDate);
+                let estadoTexto = "VENCIDO";
+                if (payInfo.status === 'paid') estadoTexto = "AL DÍA";
+                else if (payInfo.status === 'warning') estadoTexto = "POR VENCER";
+
+                // Envolvemos los textos en comillas "" y separamos por punto y coma (;)
+                // Esto garantiza que Excel en español asigne cada dato a una columna perfectamente
+                return [
+                    s.id,
+                    `"${s.name}"`,
+                    `"${s.phone}"`,
+                    `"${s.email || 'Sin correo'}"`,
+                    `"${s.plan}"`,
+                    `"${s.payType}"`,
+                    s.fee,
+                    `"${s.dueDate}"`,
+                    `"${estadoTexto}"`,
+                    `"${s.note || ''}"`
+                ].join(";");
+            });
+
+            // 3. Unimos cabeceras y filas con un salto de línea
+            const csvContent = headers.join(";") + "\n" + rows.join("\n");
+            
+            // 4. El "BOM" (\uFEFF) es un código invisible que le dice a Excel: "¡Lee las tildes y las eñes correctamente!"
+            const bom = "\uFEFF"; 
+            const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+            
+            // 5. Creamos un enlace de descarga invisible, lo clicamos y lo borramos
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            // Generamos la fecha de hoy para el nombre del archivo
+            const today = new Date();
+            const dateStr = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `CRM_OmarFit_Alumnos_${dateStr}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Reporte Excel descargado con éxito 📊", "fa-file-excel");
+        }  
+// =========================================================
+        // FUNCIÓN PARA CERRAR SESIÓN
+        // =========================================================
+        function logoutApp() {
+            // 1. Cerramos cualquier ventana modal que esté abierta por si acaso
+            if (typeof closeStudentSettingsModal === 'function') closeStudentSettingsModal();
+            
+            // 2. Escondemos la App principal
+            const header = document.getElementById('app-header');
+            const main = document.getElementById('app-main');
+            if (header) header.classList.add('hidden');
+            if (main) main.classList.add('hidden');
+            
+            // 3. Limpiamos las cajas de texto de seguridad
+            const userInput = document.getElementById('login-username');
+            const passInput = document.getElementById('login-password');
+            if (userInput) userInput.value = '';
+            if (passInput) passInput.value = '';
+            
+            // 4. Aseguramos que se muestre el formulario de Login y no el de Registro
+            if (typeof toggleAuthView === 'function') toggleAuthView('login');
+            
+            // 5. Mostramos de nuevo la pantalla de cristal con el video
+            const loginView = document.getElementById('view-login');
+            if (loginView) {
+                loginView.classList.remove('hidden');
+                // Pequeño delay para que la transición de aparición (fade in) se vea premium
+                setTimeout(() => {
+                    loginView.classList.remove('opacity-0');
+                }, 50);
+            }
+            
+            // 6. Mensaje de despedida
+            showToast("Sesión cerrada correctamente", "fa-arrow-right-from-bracket");
+        }
+
+
+    </script>
+
+    <!-- TIMER FLOTANTE DE DESCANSO -->
+    <div id="global-rest-timer" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-black/95 border border-brand-red text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(255,30,39,0.5)] flex items-center space-x-4 transition-all duration-500 translate-y-[200%] opacity-0 backdrop-blur-md pointer-events-none">
+        <i class="fa-solid fa-stopwatch text-2xl text-brand-red animate-pulse"></i>
+        <div class="flex flex-col">
+            <span class="text-[10px] text-brand-muted uppercase font-bold leading-none mb-1">Descanso (90s)</span>
+            <span id="global-rest-timer-text" class="text-xl font-display tracking-widest font-bold leading-none">01:30</span>
+        </div>
+        <button onclick="closeRestTimer()" class="w-8 h-8 bg-zinc-800 hover:bg-brand-red rounded-full flex items-center justify-center ml-2 transition-colors pointer-events-auto">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    
+</body>
+</html>
