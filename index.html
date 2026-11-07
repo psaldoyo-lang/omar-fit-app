@@ -329,6 +329,40 @@
                 </div>
             </div>
 
+
+   <!-- ========================================================= -->
+    <!-- BOTÓN DE INICIO DE ENTRENAMIENTO Y BANNER PRÉMIUM -->
+    <!-- ========================================================= -->
+
+    <!-- 1. BOTÓN PRINCIPAL DE INICIO DE ENTRENAMIENTO -->
+    <button onclick="registrarAsistencia()" id="btn-completar-rutina" class="w-full bg-gradient-to-r from-brand-red via-brand-redDark to-brand-red hover:brightness-110 text-white font-black py-4 px-6 rounded-2xl transition-all duration-300 shadow-[0_0_25px_rgba(255,30,39,0.4)] hover:shadow-[0_0_35px_rgba(255,30,39,0.6)] flex items-center justify-center space-x-3 cursor-pointer transform active:scale-98 border border-red-500/30">
+        <div class="w-8 h-8 rounded-xl bg-black/30 flex items-center justify-center text-white">
+            <i class="fa-solid fa-trophy text-sm"></i>
+        </div>
+        <span id="btn-start-workout-text" class="text-sm md:text-base tracking-widest uppercase font-display">INICIAR ENTRENAMIENTO DE HOY</span>
+    </button>
+
+    <!-- 2. BANNER / FOTO PRINCIPAL MOTIVACIONAL (ESTILO PRÉMIUM AMPLIADO) -->
+    <div class="relative rounded-3xl overflow-hidden border-2 border-brand-red/40 hover:border-brand-red transition-all duration-500 shadow-[0_0_40px_rgba(0,0,0,0.9)] bg-zinc-900 group aspect-[18/9] md:aspect-[2.7/1] flex items-center justify-center">
+        <img id="mot-banner-img" src="assets/foto principal.jpg" alt="Omar Fit" class="absolute inset-0 w-full h-full object-cover opacity-65 group-hover:scale-105 transition-transform duration-700 cursor-pointer" onclick="openMediaModal('image', 'assets/porras1.jpg', 'Familia Fierrera Omar Fit 🔥')">
+        
+        <!-- Degradados múltiples para profundidad visual -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_20%,_rgba(0,0,0,0.6)_100%)]"></div>
+
+        <div class="relative z-10 text-center p-6 flex flex-col justify-end h-full pb-8">
+            <span class="bg-brand-red text-white text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(255,30,39,0.6)] inline-block mb-3 border border-red-400/30 mx-auto">
+                <i class="fa-solid fa-bolt mr-1.5"></i>FAMILIA FIERRERA OMAR FIT
+            </span>
+            <h3 class="text-base md:text-2xl font-black text-white italic tracking-wide uppercase drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] font-display mb-2">
+                "Entrena sin excusas, para que el dolor de hoy sea el resultado del mañana"
+            </h3>
+            <p class="text-[10px] md:text-xs text-zinc-300 font-semibold tracking-wider uppercase drop-shadow">
+                Cada repetición cuenta para tus objetivos. ¡A romperla! 🔥
+            </p>
+        </div>
+    </div>
+
             <!-- 5. GALERÍA MULTIMEDIA -->
             <section class="bg-brand-card rounded-3xl border border-brand-border p-5 md:p-6 space-y-4 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
