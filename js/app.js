@@ -143,6 +143,9 @@ const videoCache = {};
             const btnIcon = document.getElementById('btn-login-icon');
             const submitBtn = document.getElementById('btn-login-submit');
             
+            const coachGear = document.getElementById('btn-coach-gear');
+            if(coachGear) coachGear.style.setProperty('display', 'flex', 'important');
+           
             // Efecto de carga
             if(btnText && btnIcon && submitBtn) {
                 btnText.innerText = "Autenticando...";
@@ -410,6 +413,7 @@ function switchView(view) {
     const btnTrainer = document.getElementById('btn-view-trainer');
     const btnSettings = document.getElementById('btn-student-settings'); 
     const btnQr = document.querySelector('button[onclick="openStudentQRModal()"]');
+    const mobileNav = document.getElementById('mobile-bottom-nav');
 
     if (!studentView || !trainerView) return;
 
@@ -419,7 +423,12 @@ function switchView(view) {
         if (btnStudent) btnStudent.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md";
         if (btnTrainer) btnTrainer.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-brand-muted hover:text-white";
         
-        // 🔒 OCULTAR BOTONES PERSONALES SI EL ROL ACTIVO ES COACH
+        // 📱 MOSTRAR BARRA FLOTANTE EN HORIZONTAL
+        if (mobileNav) {
+            mobileNav.style.setProperty('display', 'flex', 'important');
+            mobileNav.style.setProperty('flex-direction', 'row', 'important');
+        }
+
         if (currentUserRole === 'coach') {
             if (btnSettings) btnSettings.style.setProperty('display', 'none', 'important');
             if (btnQr) btnQr.style.setProperty('display', 'none', 'important');
@@ -430,18 +439,24 @@ function switchView(view) {
 
         syncStudentView(currentStudentId);
 
-    } else {
+    } else { // 👈 ¡Faltaba este bloque completo y las llaves de cierre!
         studentView.style.setProperty('display', 'none', 'important');
         trainerView.style.setProperty('display', 'block', 'important');
         if (btnTrainer) btnTrainer.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md";
         if (btnStudent) btnStudent.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-brand-muted hover:text-white";
         
+        if (mobileNav) {
+            mobileNav.style.setProperty('display', 'none', 'important');
+        }
+
         const weeklyModal = document.getElementById('modal-weekly-warning');
         if(weeklyModal) weeklyModal.classList.add('hidden');
 
         renderTrainerTable();
     }
 }
+
+
 
         function openImageModal() {
             const modal = document.getElementById('modal-image-fullscreen');
@@ -1764,8 +1779,7 @@ function saveMeasureRecord() {
             }
         }
 
-
-        function openMediaModal(type, src, title) {
+function openMediaModal(type, src, title) {
             if (type === 'image') {
                 const modal = document.getElementById('modal-image-fullscreen');
                 const targetImg = document.getElementById('fullscreen-img-target');
@@ -1778,16 +1792,35 @@ function saveMeasureRecord() {
                 const videoTarget = document.getElementById('video-modal-target');
                 const titleEl = document.getElementById('video-modal-title');
 
-                const previewVideo = document.querySelector("video[src*='preview']");
-                if (previewVideo) previewVideo.pause();
+                // Pausar cualquier otro video de fondo previo
+                const previewVideos = document.querySelectorAll("video");
+                previewVideos.forEach(v => { if(v !== videoTarget) v.pause(); });
 
                 if (modal && videoTarget) {
                     videoTarget.pause();
+                    videoTarget.removeAttribute('src'); // Limpieza profunda del buffer
+                    
                     if (titleEl) titleEl.innerText = title || 'Entrenamiento Intensivo Omar Fit 🔥';
-                    const finalSource = videoCache[src] ? videoCache[src] : src;
-                    videoTarget.src = finalSource;
+                    
+                    // Asignamos directamente la ruta (ignorando temporalmente el caché local si interfiere con los blobs)
+                    videoTarget.src = src;
+                    
+                    videoTarget.setAttribute('controls', 'true');
+                    videoTarget.setAttribute('playsinline', 'true');
+                    
+                    // Mostramos el modal primero para que el DOM reconozca el elemento video visible
                     modal.classList.remove('hidden');
-                    videoTarget.play().catch(err => console.log("Play fluida:", err));
+                    
+                    // Forzamos la carga y reproducción controlada
+                    videoTarget.load();
+                    
+                    // Envolvemos el play en un try/catch para evitar errores en consola si el navegador lo restringe
+                    const playPromise = videoTarget.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.log("Reproducción automática pausada por políticas del navegador. El usuario puede usar los controles manuales.", error);
+                        });
+                    }
                 }
             }
         }
@@ -1815,7 +1848,7 @@ function saveMeasureRecord() {
             { type: 'video', src: 'vid/video4.mp4', title: 'Entrenamiento Intensivo Omar Fit' },
         ];
 
-       function openFullGalleryModal(filterCategory) {
+     function openFullGalleryModal(filterCategory) {
             const modal = document.getElementById('modal-full-gallery');
             const titleEl = document.getElementById('full-gallery-title');
             const gridContainer = document.getElementById('full-gallery-grid');
@@ -1834,13 +1867,24 @@ function saveMeasureRecord() {
                 if (titleEl) titleEl.innerText = "Galería Multimedia Completa - Omar Fit";
             }
 
-            filtered.forEach(item => {
+            filtered.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = "relative group rounded-xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg";
                 
+                // 🔒 EXCLUSIVO PARA EL COACH: Solo si currentUserRole es 'coach' se dibuja el tachito
+                let deleteBtnHtml = '';
+                if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach') {
+                    deleteBtnHtml = `
+                        <button onclick="event.stopPropagation(); deleteGalleryItem(${index});" class="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-brand-red text-white rounded-lg flex items-center justify-center transition-all z-20 border border-zinc-700 hover:border-brand-red shadow-md" title="Eliminar archivo">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    `;
+                }
+
                 if (item.type === 'image') {
                     card.onclick = () => { closeFullGalleryModal(); openMediaModal('image', item.src, item.title); };
                     card.innerHTML = `
+                        ${deleteBtnHtml}
                         <img src="${item.src}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                         <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
                         <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md border border-zinc-700 backdrop-blur-md flex items-center space-x-1">
@@ -1849,16 +1893,15 @@ function saveMeasureRecord() {
                         </span>
                     `;
                 } else {
-                    // 🟢 CORRECCIÓN: Usamos un minivideo o su propia miniatura en lugar de repetir la foto principal
-                    card.onclick = () => { closeFullGalleryModal(); openMediaModal('video', item.src, item.title); };
                     card.innerHTML = `
+                        ${deleteBtnHtml}
                         <video src="${item.src}" muted playsinline preload="metadata" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"></video>
-                        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center" onclick="event.stopPropagation(); openMediaModal('video', '${item.src}', '${item.title}');">
                             <div class="w-10 h-10 bg-brand-red text-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform glow-red">
                                 <i class="fa-solid fa-play text-sm ml-0.5"></i>
                             </div>
                         </div>
-                        <span class="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow flex items-center space-x-1">
+                        <span class="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow flex items-center space-x-1 pointer-events-none">
                             <i class="fa-solid fa-video"></i>
                             <span>Video</span>
                         </span>
@@ -1875,66 +1918,87 @@ function saveMeasureRecord() {
             if(m) m.classList.add('hidden');
         }
 
-      // =========================================================
-        // FUNCIÓN PARA EXPORTAR A CSV (FORMATO EXCEL PERFECTO)
-        // =========================================================
-        function exportToCSV() {
-            if (studentsList.length === 0) {
-                showToast("No hay atletas para exportar.", "fa-triangle-exclamation");
-                return;
-            }
+    // =========================================================
+// FUNCIÓN PARA EXPORTAR A CSV (FORMATO EXCEL PERFECTO)
+// =========================================================
+function exportToCSV() {
+    if (studentsList.length === 0) {
+        showToast("No hay atletas para exportar.", "fa-triangle-exclamation");
+        return;
+    }
 
-            // 1. Cabeceras del Excel
-            const headers = ["ID", "ATLETA", "CELULAR", "CORREO", "PLAN", "MODALIDAD", "CUOTA (S/)", "VENCIMIENTO", "ESTADO", "NOTA"];
-            
-            // 2. Mapeamos la lista de atletas para crear las filas
-            const rows = studentsList.map(s => {
-                // Calculamos el estado actual para que en el Excel diga si está al día o vencido
-                const payInfo = getPaymentStatus(s.dueDate);
-                let estadoTexto = "VENCIDO";
-                if (payInfo.status === 'paid') estadoTexto = "AL DÍA";
-                else if (payInfo.status === 'warning') estadoTexto = "POR VENCER";
+    // 1. Cabeceras del Excel (Cambiado "ID" por "N°")
+    const headers = ["N°", "ATLETA", "CELULAR", "CORREO", "PLAN", "MODALIDAD", "CUOTA (S/)", "VENCIMIENTO", "ESTADO", "NOTA"];
+    
+    let totalCuotas = 0;
+    let alumnosAlDia = 0;
+    let alumnosVencidos = 0;
 
-                // Envolvemos los textos en comillas "" y separamos por punto y coma (;)
-                // Esto garantiza que Excel en español asigne cada dato a una columna perfectamente
-                return [
-                    s.id,
-                    `"${s.name}"`,
-                    `"${s.phone}"`,
-                    `"${s.email || 'Sin correo'}"`,
-                    `"${s.plan}"`,
-                    `"${s.payType}"`,
-                    s.fee,
-                    `"${s.dueDate}"`,
-                    `"${estadoTexto}"`,
-                    `"${s.note || ''}"`
-                ].join(";");
-            });
+    // 2. Mapeamos la lista de atletas usando 'index + 1' para que cuente cuántos hay (1, 2, 3...)
+    const rows = studentsList.map((s, index) => {
+        const payInfo = getPaymentStatus(s.dueDate);
+        let estadoTexto = "VENCIDO";
+        if (payInfo.status === 'paid') {
+            estadoTexto = "AL DÍA";
+            alumnosAlDia++;
+        } else if (payInfo.status === 'warning') {
+            estadoTexto = "POR VENCER";
+        } else {
+            alumnosVencidos++;
+        }
 
-            // 3. Unimos cabeceras y filas con un salto de línea
-            const csvContent = headers.join(";") + "\n" + rows.join("\n");
-            
-            // 4. El "BOM" (\uFEFF) es un código invisible que le dice a Excel: "¡Lee las tildes y las eñes correctamente!"
-            const bom = "\uFEFF"; 
-            const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
-            
-            // 5. Creamos un enlace de descarga invisible, lo clicamos y lo borramos
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            
-            // Generamos la fecha de hoy para el nombre del archivo
-            const today = new Date();
-            const dateStr = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", `CRM_OmarFit_Alumnos_${dateStr}.csv`);
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showToast("Reporte Excel descargado con éxito 📊", "fa-file-excel");
-        }  
+        const cuotaVal = parseFloat(s.fee) || 0;
+        totalCuotas += cuotaVal;
+
+        const cleanName = (s.name || '').replace(/"/g, '""');
+        const cleanPlan = (s.plan || '').replace(/"/g, '""');
+        const cleanNote = (s.note || '').replace(/"/g, '""');
+
+        return [
+            index + 1, // Número correlativo de orden
+            `"${cleanName}"`,
+            `"${s.phone || ''}"`,
+            `"${s.email || 'Sin correo'}"`,
+            `"${cleanPlan}"`,
+            `"${s.payType || 'Mensual'}"`,
+            cuotaVal.toFixed(2),
+            `"${s.dueDate || ''}"`,
+            `"${estadoTexto}"`,
+            `"${cleanNote}"`
+        ].join(";");
+    });
+
+    // 3. Agregamos filas de resumen / totales al final de la tabla
+    const totalAlumnos = studentsList.length;
+    const promedioCuota = totalAlumnos > 0 ? (totalCuotas / totalAlumnos).toFixed(2) : "0.00";
+
+    const summaryRows = [
+        "", // Línea en blanco
+        `"RESUMEN GENERAL DEL CRM OMAR FIT";"";"";"";"";"";"";"";"";""`,
+        `"Total de Atletas Registrados:";"${totalAlumnos}";"Al Día:";"${alumnosAlDia}";"Vencidos/Por Vencer:";"${alumnosVencidos}";"";"";"";""`,
+        `"Ingreso Total Estimado (S/):";"${totalCuotas.toFixed(2)}";"Promedio por Cuota (S/):";"${promedioCuota}";"";"";"";"";"";""`
+    ];
+
+    const csvContent = headers.join(";") + "\n" + rows.join("\n") + "\n" + summaryRows.join("\n");
+    
+    const bom = "\uFEFF"; 
+    const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    const today = new Date();
+    const dateStr = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `CRM_OmarFit_Reporte_${dateStr}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast("¡Reporte Excel exportado con éxito! 📊", "fa-file-excel");
+}
 // =========================================================
         // FUNCIÓN PARA CERRAR SESIÓN
         // =========================================================
@@ -1969,6 +2033,7 @@ function saveMeasureRecord() {
             
             // 6. Mensaje de despedida
             showToast("Sesión cerrada correctamente", "fa-arrow-right-from-bracket");
+            coachGear.style.setProperty('display', 'none', 'important');
         }
 
 
@@ -2610,7 +2675,7 @@ function renderProgressChart(historial) {
 
 
 // ==========================================
-// MÓDULO DE ESCÁNER QR Y SEGURIDAD PRÉMIUM
+// MÓDULO DE ESCÁNER QR CON CONTROL DE PERMISOS
 // ==========================================
 let html5QrcodeScanner = null;
 
@@ -2618,12 +2683,30 @@ function openQRScanner() {
     const modal = document.getElementById('modal-qr-scanner');
     if(modal) modal.classList.remove('hidden');
 
+    // Limpiamos cualquier instancia previa
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(err => console.log("Limpiando escáner previo:", err));
+        html5QrcodeScanner = null;
+    }
+
     html5QrcodeScanner = new Html5QrcodeScanner(
         "qr-reader", 
-        { fps: 10, qrbox: {width: 250, height: 250} },
+        { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+        },
         false
     );
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+    // Renderizamos el escáner y atrapamos el error de permisos si el navegador o Android lo deniegan
+    html5QrcodeScanner.render(onScanSuccess, (errorMessage) => {
+        // Este bloque maneja los errores de frame o permisos de forma segura sin romper la app
+        if (errorMessage && errorMessage.includes("NotAllowedError")) {
+            console.warn("Permiso de cámara denegado:", errorMessage);
+            showToast("⚠️ Habilita los permisos de cámara en tu dispositivo.", "fa-triangle-exclamation");
+        }
+    });
 }
 
 function closeQRScanner() {
@@ -2631,8 +2714,12 @@ function closeQRScanner() {
     if(modal) modal.classList.add('hidden');
     
     if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(error => console.error("Error apagando cámara", error));
-        html5QrcodeScanner = null;
+        html5QrcodeScanner.clear().then(() => {
+            html5QrcodeScanner = null;
+        }).catch(error => {
+            console.error("Error al cerrar la cámara:", error);
+            html5QrcodeScanner = null;
+        });
     }
 }
 
@@ -2793,7 +2880,7 @@ function enviarRecuperacionWhatsApp() {
 // ==========================================
 // CARGAR NUEVOS ARCHIVOS CON LÍMITE DE PESO (OPTIMIZADO)
 // ==========================================
-function handleNewMediaUpload(event, mediaType) {
+    function handleNewMediaUpload(event, mediaType) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -2835,4 +2922,18 @@ function handleNewMediaUpload(event, mediaType) {
 
     reader.readAsDataURL(file);
     event.target.value = '';
+}
+
+function deleteGalleryItem(index) {
+    // Doble validación de seguridad por si acaso
+    if (typeof currentUserRole !== 'undefined' && currentUserRole !== 'coach') {
+        showToast("Acción no autorizada.", "fa-lock");
+        return;
+    }
+
+    if (confirm("¿Estás seguro de eliminar este archivo multimedia de la galería?")) {
+        galleryFiles.splice(index, 1);
+        openFullGalleryModal('all');
+        showToast("Archivo eliminado de la galería 🗑️", "fa-trash-can");
+    }
 }

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>OMAR FIT - Personal Trainer App</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -141,8 +141,13 @@
                 </div>
             </div>
             <div id="header-controls" class="flex items-center space-x-2">
+                <!-- ⚙️ NUEVO: Engranaje exclusivo del Coach -->
+                <button onclick="openCoachSettingsModal()" id="btn-coach-gear" class="hidden w-9 h-9 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-red transition-all" title="Ajustes de Administrador">
+                    <i class="fa-solid fa-gear text-xs"></i>
+                </button>
+
                 <div id="coach-toggles" class="hidden bg-[#121215] p-1 rounded-xl border border-zinc-800 flex items-center">
-                    <button id="btn-view-student" onclick="switchView('student')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-brand-muted hover:text-white">Vista Alumno</button>
+                    <button id="btn-view-student" onclick="switchView('student')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-brand-muted hover:text-white">Vista Alumno</label>
                     <button id="btn-view-trainer" onclick="switchView('trainer')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-red text-white shadow-md">Mi Panel CRM</button>
                 </div>
                 <button onclick="logoutApp()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-red">
@@ -475,9 +480,7 @@
                     </div>
 
                     <div class="relative group rounded-2xl overflow-hidden border-2 border-brand-red hover:border-white bg-zinc-900 aspect-video cursor-pointer shadow-lg transition-all" 
-                         onclick="openMediaModal('video', 'vid/video1.mp4', 'Entrenamiento Intensivo Omar Fit 🔥')"
-                         onmouseenter="this.querySelector('video') && this.querySelector('video').play()"
-                         onmouseleave="this.querySelector('video') && this.querySelector('video').pause()">
+                         onclick="openMediaModal('video', 'vid/video1.mp4', 'Entrenamiento Intensivo Omar Fit 🔥')">
                         <video src="vid/video1.mp4" muted loop playsinline preload="metadata" class="w-full h-full object-cover opacity-95"></video>
                         <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none">
                             <div class="w-12 h-12 bg-brand-red/90 text-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300 glow-red border border-white/20">
@@ -604,33 +607,40 @@
            
     </main>
 
+<!-- ========================================================= -->
+    <!-- 4. BARRA INFERIOR FLOTANTE MÓVIL (FORZADA A HORIZONTAL) -->
     <!-- ========================================================= -->
-    <!-- 4. BARRA INFERIOR FLOTANTE MÓVIL -->
-    <!-- ========================================================= -->
-    <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2.5 flex items-center justify-around shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
-        <a href="#app-main" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center text-zinc-400 hover:text-brand-red">
+    <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 hidden shadow-[0_-5px_20px_rgba(0,0,0,0.8)]" style="display: none; flex-direction: row !important; align-items: center !important; justify-content: space-around !important;">
+        
+        <!-- 1. Inicio -->
+        <a href="#app-main" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
             <i class="fa-solid fa-house text-sm mb-1"></i>
-            <span class="text-[9px] font-bold uppercase">Inicio</span>
+            <span class="text-[8px] font-bold uppercase tracking-wider">Inicio</span>
         </a>
-        <button onclick="startRestTimer(90)" class="w-12 h-12 bg-brand-red text-white rounded-full flex items-center justify-center -mt-5 border-4 border-[#050506] shadow-[0_0_20px_rgba(255,30,39,0.6)]">
+
+        <!-- 2. Rutina -->
+        <a href="#section-workout" onclick="document.getElementById('section-workout').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
+            <i class="fa-solid fa-dumbbell text-sm mb-1"></i>
+            <span class="text-[8px] font-bold uppercase tracking-wider">Rutina</span>
+        </a>
+
+        <!-- 3. Cronómetro Central -->
+        <button onclick="startRestTimer(90)" class="w-12 h-12 bg-brand-red text-white rounded-full flex items-center justify-center -mt-5 border-4 border-[#050506] shadow-[0_0_20px_rgba(255,30,39,0.6)] cursor-pointer hover:scale-105 transition-transform" title="Cronómetro de Descanso">
             <i class="fa-solid fa-stopwatch text-base"></i>
         </button>
-        <button onclick="openStudentSettingsModal()" class="flex flex-col items-center text-zinc-400 hover:text-brand-red cursor-pointer">
-            <i class="fa-solid fa-gear text-sm mb-1"></i>
-            <span class="text-[9px] font-bold uppercase">Ajustes</span>
-        </button>
-    </nav>
 
-    <div id="global-rest-timer" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-black/95 border border-brand-red text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(255,30,39,0.5)] flex items-center space-x-4 transition-all duration-500 translate-y-[200%] opacity-0 backdrop-blur-md pointer-events-none">
-        <i class="fa-solid fa-stopwatch text-2xl text-brand-red animate-pulse"></i>
-        <div class="flex flex-col">
-            <span class="text-[10px] text-brand-muted uppercase font-bold leading-none mb-1">Descanso (90s)</span>
-            <span id="global-rest-timer-text" class="text-xl font-display tracking-widest font-bold leading-none">01:30</span>
-        </div>
-        <button onclick="closeRestTimer()" class="w-8 h-8 bg-zinc-800 hover:bg-brand-red rounded-full flex items-center justify-center ml-2 transition-colors pointer-events-auto">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
+        <!-- 4. Dieta -->
+        <a href="#section-nutrition" onclick="document.getElementById('section-nutrition').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
+            <i class="fa-solid fa-utensils text-sm mb-1"></i>
+            <span class="text-[8px] font-bold uppercase tracking-wider">Dieta</span>
+        </a>
+
+        <!-- 5. Medidas -->
+        <a href="#section-progress" onclick="document.getElementById('section-progress').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
+            <i class="fa-solid fa-chart-line text-sm mb-1"></i>
+            <span class="text-[8px] font-bold uppercase tracking-wider">Medidas</span>
+        </a>
+    </nav>
 
     <!-- ========================================================= -->
     <!-- 5. TODOS LOS MODALES Y COMPONENTES FLOTANTES -->
@@ -661,48 +671,13 @@
         </div>
     </div>
     
-    <!-- ========================================================= -->
-    <!-- 4. BARRA INFERIOR FLOTANTE MÓVIL (MEJORADA Y COMPLETA) -->
-    <!-- ========================================================= -->
-    <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-zinc-800/80 px-2 py-2 flex items-center justify-around shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
-        
-        <!-- 1. Inicio -->
-        <a href="#app-main" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
-            <i class="fa-solid fa-house text-sm mb-1"></i>
-            <span class="text-[8px] font-bold uppercase tracking-wider">Inicio</span>
-        </a>
-
-        <!-- 2. Rutina de Hoy -->
-        <a href="#section-workout" onclick="document.getElementById('section-workout').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
-            <i class="fa-solid fa-dumbbell text-sm mb-1"></i>
-            <span class="text-[8px] font-bold uppercase tracking-wider">Rutina</span>
-        </a>
-
-        <!-- Botón Central de Cronómetro (Destacado) -->
-        <button onclick="startRestTimer(90)" class="w-12 h-12 bg-brand-red text-white rounded-full flex items-center justify-center -mt-5 border-4 border-[#050506] shadow-[0_0_20px_rgba(255,30,39,0.6)] cursor-pointer hover:scale-105 transition-transform" title="Cronómetro de Descanso">
-            <i class="fa-solid fa-stopwatch text-base"></i>
-        </button>
-
-        <!-- 3. Nutrición / Dieta -->
-        <a href="#section-nutrition" onclick="document.getElementById('section-nutrition').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
-            <i class="fa-solid fa-utensils text-sm mb-1"></i>
-            <span class="text-[8px] font-bold uppercase tracking-wider">Dieta</span>
-        </a>
-
-        <!-- 4. Ajustes -->
-        <button onclick="openStudentSettingsModal()" class="flex flex-col items-center text-zinc-400 hover:text-brand-red cursor-pointer transition-colors">
-            <i class="fa-solid fa-gear text-sm mb-1"></i>
-            <span class="text-[8px] font-bold uppercase tracking-wider">Ajustes</span>
-        </button>
-    </nav>
-
-    <!-- MODAL: VER FOTO EN PANTALLA COMPLETA -->
-    <div id="modal-image-fullscreen" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
-        <button onclick="closeImageModal()" class="absolute top-6 right-6 w-14 h-14 bg-zinc-800 hover:bg-brand-red text-white text-2xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
+   <!-- MODAL: VER FOTO EN PANTALLA COMPLETA (CON ZOOM HABILITADO) -->
+    <div id="modal-image-fullscreen" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 hidden overflow-auto">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 w-12 h-12 bg-zinc-800 hover:bg-brand-red text-white text-xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="relative max-w-5xl w-full h-full flex items-center justify-center p-4">
-            <img id="fullscreen-img-target" src="" alt="Foto Agrandada" class="max-w-full max-h-[85vh] rounded-2xl object-contain border-2 border-brand-red/60 shadow-2xl glow-red">
+        <div class="relative w-full h-full flex items-center justify-center p-2 overflow-auto">
+            <img id="fullscreen-img-target" src="" alt="Foto Agrandada" class="max-w-none w-auto h-auto max-h-[90vh] rounded-xl object-contain border border-brand-red/40 shadow-2xl">
         </div>
     </div>
 
@@ -1037,6 +1012,20 @@
         </div>
     </div>
 
+   <!-- ========================================================= -->
+    <!-- MODAL: REPRODUCTOR DE VIDEO EN PANTALLA COMPLETA -->
+    <!-- ========================================================= -->
+    <div id="modal-video-player" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 hidden">
+        <button onclick="closeVideoModal()" class="absolute top-4 right-4 w-12 h-12 bg-zinc-800 hover:bg-brand-red text-white text-xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="relative w-full h-full flex flex-col items-center justify-center p-2">
+            <h3 id="video-modal-title" class="text-white font-bold text-sm mb-3 uppercase tracking-wide">Entrenamiento</h3>
+            <!-- Añadimos playsinline, controls y preload -->
+            <video id="video-modal-target" controls playsinline preload="auto" class="max-w-full max-h-[80vh] rounded-xl object-contain shadow-2xl border border-brand-red/40"></video>
+        </div>
+    </div>
+    
     <!-- MODAL: ALERTA VENCIMIENTO -->
     <div id="modal-weekly-warning" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
         <div class="bg-brand-card border-2 border-brand-red rounded-3xl max-w-sm w-full p-6 text-center space-y-5 glow-red shadow-2xl">
