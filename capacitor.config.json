@@ -1,0 +1,6 @@
+{
+  "appId": "com.omarfit.app",
+  "appName": "Omar Fit",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
