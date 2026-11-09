@@ -471,311 +471,309 @@ function switchView(view) {
         function closeImageModal() {
             document.getElementById('modal-image-fullscreen').classList.add('hidden');
         }
+function syncStudentView(studentId = 1) {
+    currentStudentId = studentId; // Seteamos el usuario activo globalmente
 
-    function syncStudentView(studentId = 1) {
-            currentStudentId = studentId; // Seteamos el usuario activo globalmente
+    const curStudent = studentsList.find(s => s.id == studentId) || studentsList[0];
+    if (!curStudent) return;
 
-            const curStudent = studentsList.find(s => s.id == studentId) || studentsList[0];
-            if (!curStudent) return;
+    const nameParts = curStudent.name.split(' ');
+    const userInitials = nameParts.length >= 2 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : curStudent.name.substring(0,2).toUpperCase();
 
-            const nameParts = curStudent.name.split(' ');
-            const userInitials = nameParts.length >= 2 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : curStudent.name.substring(0,2).toUpperCase();
+    // 🌟 CORRECCIÓN DE FOTO (Soporta 'photo' y 'foto' indistintamente)
+    const fotoPerfil = curStudent.foto || curStudent.photo || '';
+    const avatarContainer = document.getElementById('student-avatar-container');
+    if (avatarContainer) {
+        if (fotoPerfil) {
+            avatarContainer.innerHTML = `<img src="${fotoPerfil}" class="w-full h-full object-cover">`;
+        } else {
+            avatarContainer.innerHTML = `<span id="student-initials-display">${userInitials}</span>`;
+        }
+    }
 
-            const avatarContainer = document.getElementById('student-avatar-container');
-            if (avatarContainer) {
-                if (curStudent.photo) {
-                    avatarContainer.innerHTML = `<img src="${curStudent.photo}" class="w-full h-full object-cover">`;
-                } else {
-                    avatarContainer.innerHTML = `<span id="student-initials-display">${userInitials}</span>`;
-                }
-            }
+    const nameDisplay = document.getElementById('student-name-display');
+    if(nameDisplay) nameDisplay.innerText = curStudent.name;
+    
+    const subtitleContainer = document.getElementById('student-subtitle-display');
+    const stPayInfo = getPaymentStatus(curStudent.dueDate);
 
-            const nameDisplay = document.getElementById('student-name-display');
-            if(nameDisplay) nameDisplay.innerText = curStudent.name;
-            
-            const subtitleContainer = document.getElementById('student-subtitle-display');
-            const stPayInfo = getPaymentStatus(curStudent.dueDate);
-
-            if (subtitleContainer) {
-                // AQUÍ AGREGAMOS EL CORREO A LA INTERFAZ
-                const mailText = curStudent.email ? `<span class="text-zinc-400 font-normal ml-1 border-l border-zinc-700 pl-1"><i class="fa-solid fa-envelope text-[9px] mr-0.5"></i> ${curStudent.email}</span>` : '';
-                
-                let stStatusHTML = '';
-                if(stPayInfo.status === 'paid') stStatusHTML = '<span class="text-emerald-400 font-bold">● Al día</span>';
-                else if(stPayInfo.status === 'warning') stStatusHTML = `<span class="text-amber-400 font-bold">● Vence pronto (${stPayInfo.days}d)</span>`;
-                else stStatusHTML = '<span class="text-brand-red font-bold">● Vencido</span>';
-
-                subtitleContainer.innerHTML = `Entrenador: <span class="text-white font-semibold">Omar Ore</span> | ${stStatusHTML} ${mailText}`;
-            }
-
-        // --- LÓGICA DE ALERTA DE VENCIMIENTO BLINDADA (SIN BUCLES) ---
-            const weeklyModal = document.getElementById('modal-weekly-warning');
-            const trainerView = document.getElementById('view-trainer');
-            
-            if (weeklyModal) {
-                // Si el coach está en su panel o el usuario activo es el administrador, ocultamos el modal
-                if ((trainerView && trainerView.style.display === 'block') || currentUserRole === 'coach') {
-                    weeklyModal.classList.add('hidden');
-                } else if (curStudent.dueDate && curStudent.dueDate.toLowerCase() !== "pendiente") {
-                    const stPayInfo = getPaymentStatus(curStudent.dueDate);
-                    const isWeeklyPlan = curStudent.payType === 'Semanal';
-                    const isMonthlyPlan = curStudent.payType === 'Mensual';
-
-                    // 🔒 MODIFICACIÓN CLAVE: Verificamos si el usuario ya decidió cerrar el modal 
-                    // o si está expirado de forma crítica para mostrarlo solo una vez por sesión o cuando toque.
-                    const isExpired = stPayInfo.status === 'expired';
-                    const isWarningWeekly = isWeeklyPlan && stPayInfo.status === 'warning' && stPayInfo.days <= 1;
-                    const isWarningMonthly = isMonthlyPlan && stPayInfo.status === 'warning' && stPayInfo.days <= 3;
-
-                    if (isExpired || isWarningWeekly || isWarningMonthly) {
-                        // Solo lo mostramos si estaba oculto, evitando que se re-renderice y congele la pantalla en bucle
-                        if (weeklyModal.classList.contains('hidden')) {
-                            weeklyModal.classList.remove('hidden');
-                        }
-                        
-                        const wText = document.getElementById('weekly-warning-days');
-                        if (wText) {
-                            if (isExpired) wText.innerText = 'VENCIDA (BLOQUEADO)';
-                            else if (stPayInfo.days === 0) wText.innerText = 'VENCE HOY';
-                            else if (stPayInfo.days === 1) wText.innerText = 'VENCE MAÑANA';
-                            else wText.innerText = `VENCE EN ${stPayInfo.days} DÍAS`;
-                        }
-                    } else {
-                        weeklyModal.classList.add('hidden');
-                    }
-                } else {
-                    // Si dice "Pendiente" o no tiene fecha válida, mantenemos el modal cerrado
-                    weeklyModal.classList.add('hidden');
-                }
-            }
+    if (subtitleContainer) {
+        const mailText = curStudent.email ? `<span class="text-zinc-400 font-normal ml-1 border-l border-zinc-700 pl-1"><i class="fa-solid fa-envelope text-[9px] mr-0.5"></i> ${curStudent.email}</span>` : '';
         
+        let stStatusHTML = '';
+        if(stPayInfo.status === 'paid') stStatusHTML = '<span class="text-emerald-400 font-bold">● Al día</span>';
+        else if(stPayInfo.status === 'warning') stStatusHTML = `<span class="text-amber-400 font-bold">● Vence pronto (${stPayInfo.days}d)</span>`;
+        else stStatusHTML = '<span class="text-brand-red font-bold">● Vencido</span>';
 
-            const planDisplay = document.getElementById('student-plan-display');
-            if(planDisplay) planDisplay.innerText = curStudent.plan;
+        subtitleContainer.innerHTML = `Entrenador: <span class="text-white font-semibold">Omar Ore</span> | ${stStatusHTML} ${mailText}`;
+    }
 
-            const dueDisplay = document.getElementById('student-duedate-display');
-            if(dueDisplay) dueDisplay.innerHTML = `<i class="fa-regular fa-calendar-check text-brand-red mr-1"></i> ${curStudent.dueDate}`;
-            
-            const payTypeDisplay = document.getElementById('student-paytype-display');
-            if(payTypeDisplay) payTypeDisplay.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> ${curStudent.payType}`;
-            
-            const feeDisplay = document.getElementById('student-fee-display');
-            if(feeDisplay) feeDisplay.innerText = `S/ ${parseFloat(curStudent.fee).toFixed(2)}`;
+    // --- LÓGICA DE ALERTA DE VENCIMIENTO BLINDADA (SIN BUCLES) ---
+    const weeklyModal = document.getElementById('modal-weekly-warning');
+    const trainerView = document.getElementById('view-trainer');
+    
+    if (weeklyModal) {
+        if ((trainerView && trainerView.style.display === 'block') || currentUserRole === 'coach') {
+            weeklyModal.classList.add('hidden');
+        } else if (curStudent.dueDate && curStudent.dueDate.toLowerCase() !== "pendiente") {
+            const isWeeklyPlan = curStudent.payType === 'Semanal';
+            const isMonthlyPlan = curStudent.payType === 'Mensual';
 
-            const noteCell = document.getElementById('default-note-cell');
-            if (noteCell) noteCell.innerText = curStudent.note || "Progreso constante";
+            const isExpired = stPayInfo.status === 'expired';
+            const isWarningWeekly = isWeeklyPlan && stPayInfo.status === 'warning' && stPayInfo.days <= 1;
+            const isWarningMonthly = isMonthlyPlan && stPayInfo.status === 'warning' && stPayInfo.days <= 3;
 
-            const dietSection = document.getElementById('section-nutrition');
-            if(dietSection) {
-                const diet = curStudent.diet || { 
-                    phase: "Sin asignar", kcal: "0", prot: "0", carb: "0", fat: "0", 
-                    meal1: "", meal2: "", meal3: "", meal4: "" 
-                };
-
-                let mealsHTML = '';
-                const mealsList = [
-                    { name: 'COMIDA 1 — DESAYUNO', time: '07:30 AM', content: diet.meal1 },
-                    { name: 'COMIDA 2 — MEDIA MAÑANA', time: '10:30 AM', content: diet.meal2 },
-                    { name: 'COMIDA 3 — ALMUERZO FUERTE', time: '01:30 PM', content: diet.meal3 },
-                    { name: 'COMIDA 4 — PRE / POST ENTRENO', time: '05:30 PM', content: diet.meal4 }
-                ];
-
-                let totalMeals = 0;
-                mealsList.forEach(m => { if (m.content && m.content.trim() !== '') totalMeals++; });
-
-                mealsList.forEach(m => {
-                    if (m.content && m.content.trim() !== '') {
-                        mealsHTML += `
-                            <div class="p-6 bg-[#09090b] border border-zinc-800/60 rounded-2xl cursor-pointer transition-all hover:border-brand-red/60 relative group shadow-lg" onclick="toggleMeal(this)">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="meal-title text-brand-red font-black text-[13px] tracking-wide transition-colors uppercase">${m.name}</span>
-                                        <span class="text-zinc-500 bg-[#121215] px-2 py-1 rounded-md text-[10px] font-bold">${m.time}</span>
-                                    </div>
-                                    <div class="meal-check w-7 h-7 rounded-md border-2 border-zinc-700 flex items-center justify-center transition-colors bg-[#121215]"></div>
-                                </div>
-                                <p class="meal-desc text-[15px] font-bold text-zinc-300 leading-relaxed pr-8 transition-colors">${m.content.replace(/\n/g, '<br>')}</p>
-                            </div>
-                        `;
-                    }
-                });
-
-                if (mealsHTML === '') {
-                    mealsHTML = `<div class="p-6 bg-[#09090b] border border-zinc-800/60 rounded-2xl col-span-full"><p class="text-[15px] font-bold text-zinc-600">El Coach aún no ha asignado tu plan. 🏋️‍♂️</p></div>`;
+            if (isExpired || isWarningWeekly || isWarningMonthly) {
+                if (weeklyModal.classList.contains('hidden')) {
+                    weeklyModal.classList.remove('hidden');
                 }
+                
+                const wText = document.getElementById('weekly-warning-days');
+                if (wText) {
+                    if (isExpired) wText.innerText = 'VENCIDA (BLOQUEADO)';
+                    else if (stPayInfo.days === 0) wText.innerText = 'VENCE HOY';
+                    else if (stPayInfo.days === 1) wText.innerText = 'VENCE MAÑANA';
+                    else wText.innerText = `VENCE EN ${stPayInfo.days} DÍAS`;
+                }
+            } else {
+                weeklyModal.classList.add('hidden');
+            }
+        } else {
+            weeklyModal.classList.add('hidden');
+        }
+    }
 
-                dietSection.innerHTML = `
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 mt-4">
-                        <div>
-                            <h3 class="text-xl font-black tracking-wide text-white uppercase font-display flex items-center">
-                                <i class="fa-solid fa-utensils text-brand-red mr-3"></i>PLAN NUTRICIONAL & BIO-HIDRATACIÓN
-                            </h3>
-                            <p class="text-[12px] text-brand-muted mt-1">Dieta de <span class="text-white font-bold">${diet.phase}</span> asignada por Coach Omar | Meta Diaria: <span class="text-white font-black">${diet.kcal} kcal</span></p>
+    const planDisplay = document.getElementById('student-plan-display');
+    if(planDisplay) planDisplay.innerText = curStudent.plan;
+
+    const dueDisplay = document.getElementById('student-duedate-display');
+    if(dueDisplay) dueDisplay.innerHTML = `<i class="fa-regular fa-calendar-check text-brand-red mr-1"></i> ${curStudent.dueDate}`;
+    
+    const payTypeDisplay = document.getElementById('student-paytype-display');
+    if(payTypeDisplay) payTypeDisplay.innerHTML = `<i class="fa-solid fa-clock mr-1"></i> ${curStudent.payType}`;
+    
+    const feeDisplay = document.getElementById('student-fee-display');
+    if(feeDisplay) feeDisplay.innerText = `S/ ${parseFloat(curStudent.fee).toFixed(2)}`;
+
+    const noteCell = document.getElementById('default-note-cell');
+    if (noteCell) noteCell.innerText = curStudent.note || "Progreso constante";
+
+    // 🌟 ----------------------------------------------------
+    // 🌟 RENDERIZADO Y MARCADO VISUAL DE LOS CUADRITOS DE ASISTENCIA
+    // ------------------------------------------------------
+    const diasPermitidos = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    diasPermitidos.forEach(dia => {
+        // Buscamos elementos en tu HTML que representen los cuadritos (pueden usar atributos data-day o IDs como 'check-lunes', etc.)
+        const dayBoxes = document.querySelectorAll(`[data-attendance-day="${dia}"], #attendance-${dia}`);
+        dayBoxes.forEach(box => {
+            if (curStudent[dia] && curStudent[dia] !== "" && curStudent[dia] !== null) {
+                // Si el alumno asistió ese día, pintamos el cuadrito de verde / éxito
+                box.classList.add('bg-emerald-500', 'border-emerald-400', 'text-white');
+                box.classList.remove('bg-[#121215]', 'border-zinc-700');
+                box.innerHTML = `<i class="fa-solid fa-check text-xs"></i>`;
+            } else {
+                // Si está vacío, queda en estado normal
+                box.classList.remove('bg-emerald-500', 'border-emerald-400', 'text-white');
+                box.classList.add('bg-[#121215]', 'border-zinc-700');
+                box.innerHTML = '';
+            }
+        });
+    });
+
+    const dietSection = document.getElementById('section-nutrition');
+    if(dietSection) {
+        const diet = curStudent.diet || { 
+            phase: "Sin asignar", kcal: "0", prot: "0", carb: "0", fat: "0", 
+            meal1: "", meal2: "", meal3: "", meal4: "" 
+        };
+
+        let mealsHTML = '';
+        const mealsList = [
+            { name: 'COMIDA 1 — DESAYUNO', time: '07:30 AM', content: diet.meal1 },
+            { name: 'COMIDA 2 — MEDIA MAÑANA', time: '10:30 AM', content: diet.meal2 },
+            { name: 'COMIDA 3 — ALMUERZO FUERTE', time: '01:30 PM', content: diet.meal3 },
+            { name: 'COMIDA 4 — PRE / POST ENTRENO', time: '05:30 PM', content: diet.meal4 }
+        ];
+
+        let totalMeals = 0;
+        mealsList.forEach(m => { if (m.content && m.content.trim() !== '') totalMeals++; });
+
+        mealsList.forEach(m => {
+            if (m.content && m.content.trim() !== '') {
+                mealsHTML += `
+                    <div class="p-6 bg-[#09090b] border border-zinc-800/60 rounded-2xl cursor-pointer transition-all hover:border-brand-red/60 relative group shadow-lg" onclick="toggleMeal(this)">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center space-x-3">
+                                <span class="meal-title text-brand-red font-black text-[13px] tracking-wide transition-colors uppercase">${m.name}</span>
+                                <span class="text-zinc-500 bg-[#121215] px-2 py-1 rounded-md text-[10px] font-bold">${m.time}</span>
+                            </div>
+                            <div class="meal-check w-7 h-7 rounded-md border-2 border-zinc-700 flex items-center justify-center transition-colors bg-[#121215]"></div>
                         </div>
-                        <span class="text-[10px] border border-brand-red text-brand-red font-black px-4 py-1.5 rounded-full uppercase tracking-wider bg-transparent shadow-[0_0_15px_rgba(255,30,39,0.15)] whitespace-nowrap">${diet.phase}</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-                        
-                        <div class="lg:col-span-2 bg-[#09090b] border border-zinc-800/60 rounded-2xl p-5 md:p-6 flex flex-col shadow-lg">
-                            <div class="flex justify-between items-center mb-5">
-                                <span class="text-[11px] font-black uppercase text-white tracking-widest">Objetivos de Macronutrientes</span>
-                                <span class="text-[10px] font-bold text-emerald-500">0/${totalMeals} Comidas listas</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-3 gap-3 md:gap-4 h-full">
-                                <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
-                                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Proteína</span>
-                                    <p class="text-2xl md:text-3xl font-black text-brand-red font-display mt-1 mb-2">${diet.prot || '0'}g</p>
-                                    <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-brand-red w-[30%] shadow-[0_0_8px_#ff1e27]"></div></div>
-                                    <span class="text-[9px] text-zinc-500 font-medium">30% Cal</span>
-                                </div>
-                                
-                                <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
-                                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Carbos</span>
-                                    <p class="text-2xl md:text-3xl font-black text-amber-500 font-display mt-1 mb-2">${diet.carb || '0'}g</p>
-                                    <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-amber-500 w-[46%] shadow-[0_0_8px_#f59e0b]"></div></div>
-                                    <span class="text-[9px] text-zinc-500 font-medium">46% Cal</span>
-                                </div>
-                                
-                                <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
-                                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Grasas</span>
-                                    <p class="text-2xl md:text-3xl font-black text-emerald-500 font-display mt-1 mb-2">${diet.fat || '0'}g</p>
-                                    <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-emerald-500 w-[24%] shadow-[0_0_8px_#10b981]"></div></div>
-                                    <span class="text-[9px] text-zinc-500 font-medium">24% Cal</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-[#09090b] border border-zinc-800/60 rounded-2xl p-5 md:p-6 flex flex-col justify-between shadow-lg h-full">
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="shrink-0 mr-2">
-                                    <span class="text-[11px] font-black uppercase text-white tracking-widest flex items-center"><i class="fa-solid fa-droplet text-[#0ea5e9] mr-2"></i>Hidratación</span>
-                                    <p class="text-[9px] text-zinc-500 mt-1">Meta: 3.5 Litros / día</p>
-                                </div>
-                                <span id="hydro-text" class="text-[13px] md:text-sm font-black text-[#0ea5e9] tracking-wide whitespace-nowrap shrink-0 text-right">1.50 / 3.5 L</span>
-                            </div>
-                            
-                            <div class="w-full h-1.5 bg-[#18181b] border border-zinc-800/50 rounded-full mb-6 overflow-hidden shadow-inner">
-                                <div id="hydro-bar" class="h-full bg-[#0ea5e9] w-[42%] shadow-[0_0_12px_#0ea5e9] transition-all duration-300"></div>
-                            </div>
-                            
-                            <div class="flex space-x-3 mt-auto">
-                                <button onclick="changeHydration(-0.25)" class="w-1/3 py-2 border border-zinc-700 bg-[#121215] text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-[11px] font-bold transition-all">-250ml</button>
-                                <button onclick="changeHydration(0.25)" class="w-2/3 py-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white rounded-lg text-xs font-black shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all flex justify-center items-center">+ Vaso (250ml)</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
-                        ${mealsHTML}
+                        <p class="meal-desc text-[15px] font-bold text-zinc-300 leading-relaxed pr-8 transition-colors">${m.content.replace(/\n/g, '<br>')}</p>
                     </div>
                 `;
             }
+        });
 
-        
-          // --- LÓGICA DINÁMICA DE MEDIDAS Y TABLA ---
-            const measuresBody = document.getElementById('measures-history-body');
-            const measures = curStudent.measures || []; 
-            
-            if (measuresBody) {
-                measuresBody.innerHTML = ''; 
+        if (mealsHTML === '') {
+            mealsHTML = `<div class="p-6 bg-[#09090b] border border-zinc-800/60 rounded-2xl col-span-full"><p class="text-[15px] font-bold text-zinc-600">El Coach aún no ha asignado tu plan. 🏋️‍♂️</p></div>`;
+        }
+
+        dietSection.innerHTML = `
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 mt-4">
+                <div>
+                    <h3 class="text-xl font-black tracking-wide text-white uppercase font-display flex items-center">
+                        <i class="fa-solid fa-utensils text-brand-red mr-3"></i>PLAN NUTRICIONAL & BIO-HIDRATACIÓN
+                    </h3>
+                    <p class="text-[12px] text-brand-muted mt-1">Dieta de <span class="text-white font-bold">${diet.phase}</span> asignada por Coach Omar | Meta Diaria: <span class="text-white font-black">${diet.kcal} kcal</span></p>
+                </div>
+                <span class="text-[10px] border border-brand-red text-brand-red font-black px-4 py-1.5 rounded-full uppercase tracking-wider bg-transparent shadow-[0_0_15px_rgba(255,30,39,0.15)] whitespace-nowrap">${diet.phase}</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
                 
-                if (measures.length === 0) {
-                    measuresBody.innerHTML = `<tr><td colspan="7" class="py-4 px-3 text-center text-zinc-500 font-bold text-xs">Aún no hay medidas. Añade tu primer registro.</td></tr>`;
-                } else {
-                    measures.forEach((m, index) => {
-                        const tr = document.createElement('tr');
-                        tr.className = "hover:bg-zinc-900/50 transition-colors";
-                        tr.innerHTML = `
-                            <td class="py-3 px-3 font-bold text-white">${m.date}</td>
-                            <td class="py-3 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
-                            <td class="py-3 px-3 text-white">${m.fat > 0 ? m.fat + ' %' : '--'}</td>
-                            <td class="py-3 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
-                            <td class="py-3 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
-                            <td class="py-3 px-3 text-emerald-400 font-bold">${m.note}</td>
-                            <td class="py-3 px-3 text-center">
-                                <button onclick="deleteMeasure(${curStudent.id}, ${index})" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </td>
-                        `;
-                        measuresBody.appendChild(tr);
-                    });
-                }
-            }
+                <div class="lg:col-span-2 bg-[#09090b] border border-zinc-800/60 rounded-2xl p-5 md:p-6 flex flex-col shadow-lg">
+                    <div class="flex justify-between items-center mb-5">
+                        <span class="text-[11px] font-black uppercase text-white tracking-widest">Objetivos de Macronutrientes</span>
+                        <span class="text-[10px] font-bold text-emerald-500">0/${totalMeals} Comidas listas</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-3 md:gap-4 h-full">
+                        <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
+                            <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Proteína</span>
+                            <p class="text-2xl md:text-3xl font-black text-brand-red font-display mt-1 mb-2">${diet.prot || '0'}g</p>
+                            <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-brand-red w-[30%] shadow-[0_0_8px_#ff1e27]"></div></div>
+                            <span class="text-[9px] text-zinc-500 font-medium">30% Cal</span>
+                        </div>
+                        
+                        <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
+                            <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Carbos</span>
+                            <p class="text-2xl md:text-3xl font-black text-amber-500 font-display mt-1 mb-2">${diet.carb || '0'}g</p>
+                            <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-amber-500 w-[46%] shadow-[0_0_8px_#f59e0b]"></div></div>
+                            <span class="text-[9px] text-zinc-500 font-medium">46% Cal</span>
+                        </div>
+                        
+                        <div class="bg-[#121215] border border-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center">
+                            <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">Grasas</span>
+                            <p class="text-2xl md:text-3xl font-black text-emerald-500 font-display mt-1 mb-2">${diet.fat || '0'}g</p>
+                            <div class="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden mx-auto w-5/6 mb-1.5"><div class="h-full bg-emerald-500 w-[24%] shadow-[0_0_8px_#10b981]"></div></div>
+                            <span class="text-[9px] text-zinc-500 font-medium">24% Cal</span>
+                        </div>
+                    </div>
+                </div>
 
-            // --- ACTUALIZAR PESO Y OBJETIVO DE FORMA 100% SEGURA ---
-           // --- ACTUALIZAR PESO Y OBJETIVO CONECTADOS AL 100% ---
-            const latestWeight = measures.length > 0 && measures[0].weight > 0 ? measures[0].weight + ' kg' : '-- kg';
-            
-            // Actualizamos el peso superior usando su ID exacto
-            const weightElem = document.getElementById('student-weight-display');
-            if (weightElem) {
-                weightElem.innerText = latestWeight;
-            }
+                <div class="bg-[#09090b] border border-zinc-800/60 rounded-2xl p-5 md:p-6 flex flex-col justify-between shadow-lg h-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="shrink-0 mr-2">
+                            <span class="text-[11px] font-black uppercase text-white tracking-widest flex items-center"><i class="fa-solid fa-droplet text-[#0ea5e9] mr-2"></i>Hidratación</span>
+                            <p class="text-[9px] text-zinc-500 mt-1">Meta: 3.5 Litros / día</p>
+                        </div>
+                        <span id="hydro-text" class="text-[13px] md:text-sm font-black text-[#0ea5e9] tracking-wide whitespace-nowrap shrink-0 text-right">1.50 / 3.5 L</span>
+                    </div>
+                    
+                    <div class="w-full h-1.5 bg-[#18181b] border border-zinc-800/50 rounded-full mb-6 overflow-hidden shadow-inner">
+                        <div id="hydro-bar" class="h-full bg-[#0ea5e9] w-[42%] shadow-[0_0_12px_#0ea5e9] transition-all duration-300"></div>
+                    </div>
+                    
+                    <div class="flex space-x-3 mt-auto">
+                        <button onclick="changeHydration(-0.25)" class="w-1/3 py-2 border border-zinc-700 bg-[#121215] text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-[11px] font-bold transition-all">-250ml</button>
+                        <button onclick="changeHydration(0.25)" class="w-2/3 py-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white rounded-lg text-xs font-black shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all flex justify-center items-center">+ Vaso (250ml)</button>
+                    </div>
+                </div>
+            </div>
 
-            // Actualizamos el objetivo superior usando su ID exacto
-            const objectiveElem = document.getElementById('student-objective-display');
-            if (objectiveElem) {
-                const objetivoText = (curStudent.diet && curStudent.diet.phase && curStudent.diet.phase !== "Sin asignar") 
-                    ? curStudent.diet.phase 
-                    : (curStudent.plan || "Definición");
-                objectiveElem.innerText = objetivoText;
-            }
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+                ${mealsHTML}
+            </div>
+        `;
+    }
 
-            const curDate = new Date();
-            curDate.setHours(0,0,0,0);
-            const dueD = parseDateString(curStudent.dueDate);
+    const measuresBody = document.getElementById('measures-history-body');
+    const measures = curStudent.measures || []; 
+    
+    if (measuresBody) {
+        measuresBody.innerHTML = ''; 
+        
+        if (measures.length === 0) {
+            measuresBody.innerHTML = `<tr><td colspan="7" class="py-4 px-3 text-center text-zinc-500 font-bold text-xs">Aún no hay medidas. Añade tu primer registro.</td></tr>`;
+        } else {
+            measures.forEach((m, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-900/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-3 font-bold text-white">${m.date}</td>
+                    <td class="py-3 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
+                    <td class="py-3 px-3 text-white">${m.fat > 0 ? m.fat + ' %' : '--'}</td>
+                    <td class="py-3 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
+                    <td class="py-3 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
+                    <td class="py-3 px-3 text-emerald-400 font-bold">${m.note}</td>
+                    <td class="py-3 px-3 text-center">
+                        <button onclick="deleteMeasure(${curStudent.id}, ${index})" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                measuresBody.appendChild(tr);
+            });
+        }
+    }
+
+    const latestWeight = measures.length > 0 && measures[0].weight > 0 ? measures[0].weight + ' kg' : '-- kg';
+    
+    const weightElem = document.getElementById('student-weight-display');
+    if (weightElem) {
+        weightElem.innerText = latestWeight;
+    }
+
+    const objectiveElem = document.getElementById('student-objective-display');
+    if (objectiveElem) {
+        const objetivoText = (curStudent.diet && curStudent.diet.phase && curStudent.diet.phase !== "Sin asignar") 
+            ? curStudent.diet.phase 
+            : (curStudent.plan || "Definición");
+        objectiveElem.innerText = objetivoText;
+    }
+
+    let rachaDays = 0;
+    if (curStudent.dueDate && curStudent.dueDate.toLowerCase() !== "pendiente") {
+        const curDate = new Date();
+        curDate.setHours(0,0,0,0);
+        const dueD = parseDateString(curStudent.dueDate);
+        
+        if (!isNaN(dueD.getTime())) {
             dueD.setHours(0,0,0,0);
-            
             let startDate = new Date(dueD);
             if (curStudent.payType === 'Semanal') {
                 startDate.setDate(startDate.getDate() - 7);
             } else {
                 startDate.setMonth(startDate.getMonth() - 1);
             }
-            
-            let rachaDays = 0;
-            if (curStudent.dueDate && curStudent.dueDate.toLowerCase() !== "pendiente") {
-                const curDate = new Date();
-                curDate.setHours(0,0,0,0);
-                const dueD = parseDateString(curStudent.dueDate);
-                
-                if (!isNaN(dueD.getTime())) {
-                    dueD.setHours(0,0,0,0);
-                    let startDate = new Date(dueD);
-                    if (curStudent.payType === 'Semanal') {
-                        startDate.setDate(startDate.getDate() - 7);
-                    } else {
-                        startDate.setMonth(startDate.getMonth() - 1);
-                    }
-                    rachaDays = Math.floor((curDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                    if (rachaDays < 0) rachaDays = 0; 
-                }
-            }
-            
-            const rachaDisplay = document.getElementById('student-racha-display');
-            if(rachaDisplay) rachaDisplay.innerText = `Racha: ${rachaDays} Días`;
-
-            const planMiniBadge = document.getElementById('student-plan-mini');
-            if(planMiniBadge) planMiniBadge.innerText = curStudent.plan || "Por asignar";
-
-            const btnText = document.getElementById('btn-start-workout-text');
-            if(btnText) btnText.innerText = `INICIAR ENTRENAMIENTO DE HOY - ${dayTags[currentDay] || 'RUTINA'}`;
-      
-            const mapaDias = ['domingo', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
-            const diaRealHoy = mapaDias[new Date().getDay()];
-            if (diaRealHoy !== 'domingo') {
-                selectDay(diaRealHoy); 
-            } else {
-                selectDay('lun'); 
-            }
-
-            if (typeof renderProgressChart === 'function') {
-                renderProgressChart(curStudent.progresos);
-            }
+            rachaDays = Math.floor((curDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (rachaDays < 0) rachaDays = 0; 
         }
+    }
+    
+    const rachaDisplay = document.getElementById('student-racha-display');
+    if(rachaDisplay) rachaDisplay.innerText = `Racha: ${rachaDays} Días`;
+
+    const planMiniBadge = document.getElementById('student-plan-mini');
+    if(planMiniBadge) planMiniBadge.innerText = curStudent.plan || "Por asignar";
+
+    const btnText = document.getElementById('btn-start-workout-text');
+    if(btnText) btnText.innerText = `INICIAR ENTRENAMIENTO DE HOY - ${dayTags[currentDay] || 'RUTINA'}`;
+ 
+    const mapaDias = ['domingo', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
+    const diaRealHoy = mapaDias[new Date().getDay()];
+    if (diaRealHoy !== 'domingo') {
+        selectDay(diaRealHoy); 
+    } else {
+        selectDay('lun'); 
+    }
+
+    if (typeof renderProgressChart === 'function') {
+        renderProgressChart(curStudent.progresos);
+    }
+}
+   
 
       function selectDay(day) {
             currentDay = day;
@@ -1655,7 +1653,7 @@ function saveMeasureRecord() {
 
         let temporaryProfileImage = null;
 
- // =========================================================
+ // =// =========================================================
 // FUNCIONES DEL PERFIL DEL ALUMNO (AJUSTES)
 // =========================================================
 
@@ -1737,21 +1735,26 @@ async function saveStudentProfileChanges() {
             telefono: newPhone
         };
 
-        // Si escribió una nueva contraseña, la ciframos antes de enviarla
         if (newPassword) {
             const hashedNewPass = await hashPassword(newPassword);
             datosActualizados.password = hashedNewPass; 
             student.password = hashedNewPass;
         }
 
-        // CORREGIDO: Verificamos tanto la variable local como la global por seguridad
-        const activePhoto = (typeof temporaryProfileImage !== 'undefined' && temporaryProfileImage) ? temporaryProfileImage : (window.temporaryProfileImage || null);
+        // Capturamos la foto seleccionada de forma segura
+        const activePhoto = (typeof temporaryProfileImage !== 'undefined' && temporaryProfileImage) 
+            ? temporaryProfileImage 
+            : ((typeof window !== 'undefined' && window.temporaryProfileImage) ? window.temporaryProfileImage : null);
 
         if (activePhoto) {
             datosActualizados.foto = activePhoto;
+            
+            // 🌟 ACTUALIZACIÓN INMEDIATA EN MEMORIA LOCAL
+            student.foto = activePhoto;
             student.photo = activePhoto;
+            
             temporaryProfileImage = null;
-            window.temporaryProfileImage = null; 
+            if (typeof window !== 'undefined') window.temporaryProfileImage = null; 
         }
 
         const { error } = await supabaseClient
@@ -1764,14 +1767,15 @@ async function saveStudentProfileChanges() {
         student.name = newName;
         student.phone = newPhone;
 
+        // Refrescamos la interfaz visual para que pinte la foto nueva de inmediato
         if (typeof syncStudentView === 'function') syncStudentView(student.id);
         if (typeof renderTrainerTable === 'function') renderTrainerTable();
         
-        showToast("¡Perfil actualizado con éxito!", "fa-user-check");
+        showToast("¡Perfil y foto actualizados con éxito!", "fa-user-check");
         
     } catch (error) {
         console.error("Error al guardar perfil en la nube:", error);
-        alert("Hubo un error al actualizar tus datos. Verifica que la foto no sea demasiado pesada.");
+        alert(`Hubo un error al actualizar tus datos: ${error.message || error}`);
     } finally {
         closeStudentSettingsModal();
     }
@@ -1846,75 +1850,75 @@ function openMediaModal(type, src, title) {
             { type: 'video', src: 'vid/video4.mp4', title: 'Entrenamiento Intensivo Omar Fit' },
         ];
 
-     function openFullGalleryModal(filterCategory) {
-            const modal = document.getElementById('modal-full-gallery');
-            const titleEl = document.getElementById('full-gallery-title');
-            const gridContainer = document.getElementById('full-gallery-grid');
+   function openFullGalleryModal(filterCategory) {
+    const modal = document.getElementById('modal-full-gallery');
+    const titleEl = document.getElementById('full-gallery-title');
+    const gridContainer = document.getElementById('full-gallery-grid');
 
-            if (!modal || !gridContainer) return;
-            gridContainer.innerHTML = '';
+    if (!modal || !gridContainer) return;
+    gridContainer.innerHTML = '';
 
-            let filtered = galleryFiles;
-            if (filterCategory === 'photos') {
-                filtered = galleryFiles.filter(f => f.type === 'image');
-                if (titleEl) titleEl.innerText = "Galería de Fotos - Omar Fit";
-            } else if (filterCategory === 'videos') {
-                filtered = galleryFiles.filter(f => f.type === 'video');
-                if (titleEl) titleEl.innerText = "Galería de Videos - Omar Fit";
-            } else {
-                if (titleEl) titleEl.innerText = "Galería Multimedia Completa - Omar Fit";
-            }
+    let filtered = galleryFiles;
+    if (filterCategory === 'photos') {
+        filtered = galleryFiles.filter(f => f.type === 'image');
+        if (titleEl) titleEl.innerText = "Galería de Fotos - Omar Fit";
+    } else if (filterCategory === 'videos') {
+        filtered = galleryFiles.filter(f => f.type === 'video');
+        if (titleEl) titleEl.innerText = "Galería de Videos - Omar Fit";
+    } else {
+        if (titleEl) titleEl.innerText = "Galería Multimedia Completa - Omar Fit";
+    }
 
-            filtered.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = "relative group rounded-xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg";
-                
-                // 🔒 EXCLUSIVO PARA EL COACH: Solo si currentUserRole es 'coach' se dibuja el tachito
-                let deleteBtnHtml = '';
-                if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach') {
-                    deleteBtnHtml = `
-                        <button onclick="event.stopPropagation(); deleteGalleryItem(${index});" class="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-brand-red text-white rounded-lg flex items-center justify-center transition-all z-20 border border-zinc-700 hover:border-brand-red shadow-md" title="Eliminar archivo">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    `;
-                }
-
-                if (item.type === 'image') {
-                    card.onclick = () => { closeFullGalleryModal(); openMediaModal('image', item.src, item.title); };
-                    card.innerHTML = `
-                        ${deleteBtnHtml}
-                        <img src="${item.src}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
-                        <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md border border-zinc-700 backdrop-blur-md flex items-center space-x-1">
-                            <i class="fa-solid fa-camera text-brand-red"></i>
-                            <span>Foto</span>
-                        </span>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        ${deleteBtnHtml}
-                        <video src="${item.src}" muted playsinline preload="metadata" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500"></video>
-                        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center" onclick="event.stopPropagation(); openMediaModal('video', '${item.src}', '${item.title}');">
-                            <div class="w-10 h-10 bg-brand-red text-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform glow-red">
-                                <i class="fa-solid fa-play text-sm ml-0.5"></i>
-                            </div>
-                        </div>
-                        <span class="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow flex items-center space-x-1 pointer-events-none">
-                            <i class="fa-solid fa-video"></i>
-                            <span>Video</span>
-                        </span>
-                    `;
-                }
-                gridContainer.appendChild(card);
-            });
-
-            modal.classList.remove('hidden');
+    filtered.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = "relative group rounded-xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg";
+        
+        // 🔒 EXCLUSIVO PARA EL COACH: Solo si currentUserRole es 'coach' se dibuja el tachito
+        let deleteBtnHtml = '';
+        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach') {
+            deleteBtnHtml = `
+                <button onclick="event.stopPropagation(); deleteGalleryItem(${index});" class="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-brand-red text-white rounded-lg flex items-center justify-center transition-all z-20 border border-zinc-700 hover:border-brand-red shadow-md" title="Eliminar archivo">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            `;
         }
 
-        function closeFullGalleryModal() {
-            const m = document.getElementById('modal-full-gallery');
-            if(m) m.classList.add('hidden');
+        if (item.type === 'image') {
+            card.onclick = () => { closeFullGalleryModal(); openMediaModal('image', item.src, item.title); };
+            card.innerHTML = `
+                ${deleteBtnHtml}
+                <img src="${item.src}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
+                <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md border border-zinc-700 backdrop-blur-md flex items-center space-x-1">
+                    <i class="fa-solid fa-camera text-brand-red"></i>
+                    <span>Foto</span>
+                </span>
+            `;
+        } else {
+            card.innerHTML = `
+                ${deleteBtnHtml}
+                <video src="${item.src}" muted playsinline preload="metadata" class="w-full h-full object-contain bg-black opacity-90 group-hover:scale-105 transition-transform duration-500"></video>
+                <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center" onclick="event.stopPropagation(); openMediaModal('video', '${item.src}', '${item.title}');">
+                    <div class="w-10 h-10 bg-brand-red text-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform glow-red">
+                        <i class="fa-solid fa-play text-sm ml-0.5"></i>
+                    </div>
+                </div>
+                <span class="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow flex items-center space-x-1 pointer-events-none">
+                    <i class="fa-solid fa-video"></i>
+                    <span>Video</span>
+                </span>
+            `;
         }
+        gridContainer.appendChild(card);
+    });
+
+    modal.classList.remove('hidden');
+}
+
+function closeFullGalleryModal() {
+    const m = document.getElementById('modal-full-gallery');
+    if(m) m.classList.add('hidden');
+}
 
     // =========================================================
 // FUNCIÓN PARA EXPORTAR A CSV (FORMATO EXCEL PERFECTO)
@@ -2799,7 +2803,7 @@ function closeStudentQRModal() {
 }
 
 // ==========================================
-// ESCANEO INTELIGENTE ÚNICO Y DEFINITIVO
+// ESCANEO INTELIGENTE ÚNICO Y DEFINITIVO (DÍAS DE LA SEMANA)
 // ==========================================
 async function onScanSuccess(decodedText, decodedResult) {
     if (html5QrCode) {
@@ -2821,7 +2825,6 @@ async function onScanSuccess(decodedText, decodedResult) {
 
     const partes = decodedText.split("_");
     const scannedId = parseInt(partes[1]);
-    const firmaRecibida = partes[2];
 
     const student = studentsList.find(s => s.id === scannedId);
     if (!student) {
@@ -2832,27 +2835,49 @@ async function onScanSuccess(decodedText, decodedResult) {
     }
     
     try {
-        // REGISTRO DE ASISTENCIA EN LA NUBE (Supabase)
-        // Puedes guardarlo en una tabla de asistencias o registrar la fecha de último acceso en la tabla alumnos
-        const fechaHoy = new Date().toISOString();
-        
-        const { error: attendanceError } = await supabaseClient
-            .from('asistencias') // Asegúrate de que tu tabla se llame 'asistencias' o 'attendance'
-            .insert([{ alumno_id: scannedId, fecha: fechaHoy }]);
+        // 1. Detectar el día actual de la semana en minúsculas y sin tildes
+        const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+        const hoyIndex = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
+        const diaActual = diasSemana[hoyIndex];
 
-        if (attendanceError) {
-            console.warn("Aviso al registrar asistencia:", attendanceError.message);
+        if (diaActual === 'domingo') {
+            playSound('error');
+            alert(`⚠️ Hoy es domingo, no hay control de asistencia programado.`);
+            closeQRScanner();
+            return;
         }
+
+        // 2. Preparamos el valor a actualizar (por ejemplo, registrar la hora actual o marcar un texto/asistió)
+        const horaActual = new Date().toLocaleTimeString();
+        const datoAsistencia = `Asistió (${horaActual})`;
+
+        // 3. Actualizamos directamente la columna del día correspondiente en Supabase
+        const objetoActualizacion = {};
+        objetoActualizacion[diaActual] = datoAsistencia;
+
+        const { error: updateError } = await supabaseClient
+            .from('alumnos')
+            .update(objetoActualizacion)
+            .eq('id', scannedId);
+
+        if (updateError) {
+            console.error("DETALLE DE SUPABASE (ASISTENCIA DÍA):", updateError);
+            alert(`⚠️ Error al registrar asistencia: ${updateError.message}`);
+            closeQRScanner();
+            return;
+        }
+
+        console.log(`¡Asistencia del día ${diaActual} registrada con éxito!`);
+
     } catch (dbErr) {
-        console.log("Error de conexión al registrar asistencia:", dbErr);
+        console.error("Error crítico al registrar asistencia:", dbErr);
     }
 
     playSound('success');
-    speakWelcome(student.name); // <--- Activa la voz de bienvenida correctamente
-    alert(`✅ ¡Asistencia registrada y acceso concedido para ${student.name}!`);
+    speakWelcome(student.name); 
+    alert(`✅ ¡Asistencia registrada (${student.name}) para hoy!`);
     closeQRScanner();
 }
-
 // ==========================================
 // CORREGIDO: SINTETIZADOR DE VOZ INTELIGENTE
 // ==========================================
