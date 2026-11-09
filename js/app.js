@@ -1712,7 +1712,6 @@ function previewProfilePhoto(event) {
     }
 }
 
-// 4. GUARDAR CAMBIOS (Seguro y optimizado sin conflictos)
 async function saveStudentProfileChanges() {
     try {
         const nameEl = document.getElementById('edit-my-name');
@@ -1745,11 +1744,14 @@ async function saveStudentProfileChanges() {
             student.password = hashedNewPass;
         }
 
-        // Si seleccionó una nueva foto de perfil
-        if (temporaryProfileImage) {
-            datosActualizados.foto = temporaryProfileImage;
-            student.photo = temporaryProfileImage;
-            temporaryProfileImage = null; 
+        // CORREGIDO: Verificamos tanto la variable local como la global por seguridad
+        const activePhoto = (typeof temporaryProfileImage !== 'undefined' && temporaryProfileImage) ? temporaryProfileImage : (window.temporaryProfileImage || null);
+
+        if (activePhoto) {
+            datosActualizados.foto = activePhoto;
+            student.photo = activePhoto;
+            temporaryProfileImage = null;
+            window.temporaryProfileImage = null; 
         }
 
         const { error } = await supabaseClient
@@ -1769,7 +1771,7 @@ async function saveStudentProfileChanges() {
         
     } catch (error) {
         console.error("Error al guardar perfil en la nube:", error);
-        alert("Hubo un error al actualizar tus datos.");
+        alert("Hubo un error al actualizar tus datos. Verifica que la foto no sea demasiado pesada.");
     } finally {
         closeStudentSettingsModal();
     }
@@ -2829,9 +2831,25 @@ async function onScanSuccess(decodedText, decodedResult) {
         return;
     }
     
+    try {
+        // REGISTRO DE ASISTENCIA EN LA NUBE (Supabase)
+        // Puedes guardarlo en una tabla de asistencias o registrar la fecha de último acceso en la tabla alumnos
+        const fechaHoy = new Date().toISOString();
+        
+        const { error: attendanceError } = await supabaseClient
+            .from('asistencias') // Asegúrate de que tu tabla se llame 'asistencias' o 'attendance'
+            .insert([{ alumno_id: scannedId, fecha: fechaHoy }]);
+
+        if (attendanceError) {
+            console.warn("Aviso al registrar asistencia:", attendanceError.message);
+        }
+    } catch (dbErr) {
+        console.log("Error de conexión al registrar asistencia:", dbErr);
+    }
+
     playSound('success');
     speakWelcome(student.name); // <--- Activa la voz de bienvenida correctamente
-    alert(`✅ ¡Acceso concedido para ${student.name}!`);
+    alert(`✅ ¡Asistencia registrada y acceso concedido para ${student.name}!`);
     closeQRScanner();
 }
 
