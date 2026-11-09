@@ -697,24 +697,24 @@ function syncStudentView(studentId = 1) {
         if (measures.length === 0) {
             measuresBody.innerHTML = `<tr><td colspan="7" class="py-4 px-3 text-center text-zinc-500 font-bold text-xs">Aún no hay medidas. Añade tu primer registro.</td></tr>`;
         } else {
-            measures.forEach((m, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-zinc-900/50 transition-colors";
-                tr.innerHTML = `
-                    <td class="py-3 px-3 font-bold text-white">${m.date}</td>
-                    <td class="py-3 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
-                    <td class="py-3 px-3 text-white">${m.fat > 0 ? m.fat + ' %' : '--'}</td>
-                    <td class="py-3 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
-                    <td class="py-3 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
-                    <td class="py-3 px-3 text-emerald-400 font-bold">${m.note}</td>
-                    <td class="py-3 px-3 text-center">
-                        <button onclick="deleteMeasure(${curStudent.id}, ${index})" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </td>
-                `;
-                measuresBody.appendChild(tr);
-            });
+           measures.forEach((m, index) => {
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-zinc-900/50 transition-colors";
+                        tr.innerHTML = `
+                            <td class="py-3 px-3 font-bold text-white">${m.date}</td>
+                            <td class="py-3 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
+                            <td class="py-3 px-3 text-white">${m.pierna > 0 ? m.pierna + ' cm' : '--'}</td>
+                            <td class="py-3 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
+                            <td class="py-3 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
+                            <td class="py-3 px-3 text-emerald-400 font-bold">${m.note}</td>
+                            <td class="py-3 px-3 text-center">
+                                <button onclick="deleteMeasure(${curStudent.id}, ${index})" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        `;
+                        measuresBody.appendChild(tr);
+                    });
         }
     }
 
@@ -1010,24 +1010,40 @@ async function renderTrainerTable() {
         if (error) throw error;
         tableBody.innerHTML = '';
 
-       studentsList = alumnosNube.map(a => {
-            // Buscamos si ya teníamos un registro local de este alumno para no perder sus medidas
+studentsList = alumnosNube.map(a => {
+            // Buscamos si ya teníamos un registro local de este alumno
             const alumnoExistente = studentsList.find(s => s.id === a.id);
 
             return {
                 rutina: a.rutina || null,
-                id: a.id, name: a.nombre, phone: a.telefono,
+                id: a.id, 
+                name: a.nombre, 
+                phone: a.telefono,
                 password: a.password,
-                plan: a.plan_entrenamiento, payType: a.plan,
-                fee: a.cuota, dueDate: a.vencimiento, note: a.nota,
-                lunes: a.lunes || false, martes: a.martes || false,
-                miercoles: a.miercoles || false, jueves: a.jueves || false,
-                viernes: a.viernes || false, sabado: a.sabado || false,
+                plan: a.plan_entrenamiento, 
+                payType: a.plan,
+                fee: a.cuota, 
+                dueDate: a.vencimiento, 
+                note: a.nota,
+                
+                // 🌟 1. AÑADIMOS EL MAPEO SEGURO DE LA FOTO (Soporta foto y photo)
+                foto: a.foto || (alumnoExistente ? alumnoExistente.foto : ''),
+                photo: a.foto || (alumnoExistente ? alumnoExistente.photo : ''),
+
+                lunes: a.lunes || false, 
+                martes: a.martes || false,
+                miercoles: a.miercoles || false, 
+                jueves: a.jueves || false,
+                viernes: a.viernes || false, 
+                sabado: a.sabado || false,
+                
                 diet: a.dieta || { phase: "Sin asignar", kcal: "0", prot: "0", carb: "0", fat: "0", meal1: "", meal2: "", meal3: "", meal4: "" },
-                email: "", status: "warning",
-                // 🔒 PROTECCIÓN: Si ya existían medidas en memoria, las conservamos; si no, inicializamos el arreglo vacío
-                measures: alumnoExistente ? alumnoExistente.measures : [],
-                progresos: a.progresos || [],
+                email: "", 
+                status: "warning",
+                
+                // 🌟 2. AÑADIMOS EL MAPEO DE MEDIDAS CONECTADO A SUPABASE Y MEMORIA
+                measures: a.measures || a.progresos || (alumnoExistente ? alumnoExistente.measures : []),
+                progresos: a.progresos || a.measures || []
             };
         });
 
@@ -1565,11 +1581,11 @@ async function saveStudentData() {
         
       
 // ==========================================
-// GUARDAR REGISTRO DE MEDIDAS (100% BLINDADO Y ROBUSTO)
+// GUARDAR REGISTRO DE MEDIDAS (100% ASÍNCRONO Y BLINDADO)
 // ==========================================
 async function saveMeasureRecord() {
     const w = document.getElementById('input-weight').value;
-    const fat = document.getElementById('input-fat').value || "0";
+    const pierna = document.getElementById('input-pierna').value || "0";
     const waist = document.getElementById('input-waist').value || "0";
     const arm = document.getElementById('input-arm').value || "0";
 
@@ -1600,7 +1616,7 @@ async function saveMeasureRecord() {
         const nuevoRegistro = {
             date: `${dd}/${mm}/${yyyy}`,
             weight: parseFloat(w),
-            fat: parseFloat(fat),
+            pierna: parseFloat(pierna),
             waist: parseFloat(waist),
             arm: parseFloat(arm),
             note: "Nuevo registro"
@@ -1609,19 +1625,19 @@ async function saveMeasureRecord() {
         student.measures.unshift(nuevoRegistro);
         
         try {
-            // 🌟 GUARDADO CRÍTICO EN SUPABASE PARA QUE NO SE BORRE AL RECARGAR
+            // 🌟 GUARDADO ASÍNCRONO SEGURO EN SUPABASE
             const { error } = await supabaseClient
                 .from('alumnos')
-                .update({ progresos: student.measures })
+                .update({ measures: student.measures, progresos: student.measures })
                 .eq('id', activeId);
 
             if (error) throw error;
 
             syncStudentView(activeId); 
             closeAddMeasureModal();
-            showToast("¡Medidas guardadas y sincronizadas en la Nube!", "fa-ruler-combined");
+            showToast("¡Medidas guardadas en la Nube!", "fa-ruler-combined");
         } catch (err) {
-            console.error("Error al guardar medidas en Supabase:", err);
+            console.error("Error al sincronizar medidas en Supabase:", err);
             showToast("⚠️ Error al sincronizar el peso en la nube.", "fa-triangle-exclamation");
         }
     } else {
@@ -1629,7 +1645,7 @@ async function saveMeasureRecord() {
     }
     
     document.getElementById('input-weight').value = '';
-    document.getElementById('input-fat').value = '';
+    document.getElementById('input-pierna').value = '';
     document.getElementById('input-waist').value = '';
     document.getElementById('input-arm').value = '';
 }
