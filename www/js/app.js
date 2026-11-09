@@ -1712,7 +1712,6 @@ function previewProfilePhoto(event) {
     }
 }
 
-// 4. GUARDAR CAMBIOS (Seguro y optimizado sin conflictos)
 async function saveStudentProfileChanges() {
     try {
         const nameEl = document.getElementById('edit-my-name');
@@ -1745,11 +1744,16 @@ async function saveStudentProfileChanges() {
             student.password = hashedNewPass;
         }
 
-        // Si seleccionó una nueva foto de perfil
-        if (temporaryProfileImage) {
-            datosActualizados.foto = temporaryProfileImage;
-            student.photo = temporaryProfileImage;
-            temporaryProfileImage = null; 
+        // Verificación segura y robusta de la foto de perfil seleccionada
+        const activePhoto = (typeof temporaryProfileImage !== 'undefined' && temporaryProfileImage) 
+            ? temporaryProfileImage 
+            : ((typeof window !== 'undefined' && window.temporaryProfileImage) ? window.temporaryProfileImage : null);
+
+        if (activePhoto) {
+            datosActualizados.foto = activePhoto;
+            student.photo = activePhoto;
+            temporaryProfileImage = null;
+            if (typeof window !== 'undefined') window.temporaryProfileImage = null; 
         }
 
         const { error } = await supabaseClient
@@ -1769,7 +1773,7 @@ async function saveStudentProfileChanges() {
         
     } catch (error) {
         console.error("Error al guardar perfil en la nube:", error);
-        alert("Hubo un error al actualizar tus datos.");
+        alert(`Hubo un error al actualizar tus datos: ${error.message || error}`);
     } finally {
         closeStudentSettingsModal();
     }
@@ -2797,7 +2801,7 @@ function closeStudentQRModal() {
 }
 
 // ==========================================
-// ESCANEO INTELIGENTE ÚNICO Y DEFINITIVO
+// ESCANEO INTELIGENTE ÚNICO Y DEFINITIVO (DÍAS DE LA SEMANA)
 // ==========================================
 async function onScanSuccess(decodedText, decodedResult) {
     if (html5QrCode) {
@@ -2819,7 +2823,6 @@ async function onScanSuccess(decodedText, decodedResult) {
 
     const partes = decodedText.split("_");
     const scannedId = parseInt(partes[1]);
-    const firmaRecibida = partes[2];
 
     const student = studentsList.find(s => s.id === scannedId);
     if (!student) {
@@ -2829,12 +2832,50 @@ async function onScanSuccess(decodedText, decodedResult) {
         return;
     }
     
+    try {
+        // 1. Detectar el día actual de la semana en minúsculas y sin tildes
+        const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+        const hoyIndex = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
+        const diaActual = diasSemana[hoyIndex];
+
+        if (diaActual === 'domingo') {
+            playSound('error');
+            alert(`⚠️ Hoy es domingo, no hay control de asistencia programado.`);
+            closeQRScanner();
+            return;
+        }
+
+        // 2. Preparamos el valor a actualizar (por ejemplo, registrar la hora actual o marcar un texto/asistió)
+        const horaActual = new Date().toLocaleTimeString();
+        const datoAsistencia = `Asistió (${horaActual})`;
+
+        // 3. Actualizamos directamente la columna del día correspondiente en Supabase
+        const objetoActualizacion = {};
+        objetoActualizacion[diaActual] = datoAsistencia;
+
+        const { error: updateError } = await supabaseClient
+            .from('alumnos')
+            .update(objetoActualizacion)
+            .eq('id', scannedId);
+
+        if (updateError) {
+            console.error("DETALLE DE SUPABASE (ASISTENCIA DÍA):", updateError);
+            alert(`⚠️ Error al registrar asistencia: ${updateError.message}`);
+            closeQRScanner();
+            return;
+        }
+
+        console.log(`¡Asistencia del día ${diaActual} registrada con éxito!`);
+
+    } catch (dbErr) {
+        console.error("Error crítico al registrar asistencia:", dbErr);
+    }
+
     playSound('success');
-    speakWelcome(student.name); // <--- Activa la voz de bienvenida correctamente
-    alert(`✅ ¡Acceso concedido para ${student.name}!`);
+    speakWelcome(student.name); 
+    alert(`✅ ¡Asistencia registrada (${student.name}) para hoy!`);
     closeQRScanner();
 }
-
 // ==========================================
 // CORREGIDO: SINTETIZADOR DE VOZ INTELIGENTE
 // ==========================================
