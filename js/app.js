@@ -405,8 +405,7 @@ const videoCache = {};
                 
             }, 1500); 
         }
-        
-function switchView(view) {
+ function switchView(view) {
     const studentView = document.getElementById('view-student');
     const trainerView = document.getElementById('view-trainer');
     const btnStudent = document.getElementById('btn-view-student');
@@ -414,6 +413,7 @@ function switchView(view) {
     const btnSettings = document.getElementById('btn-student-settings'); 
     const btnQr = document.querySelector('button[onclick="openStudentQRModal()"]');
     const mobileNav = document.getElementById('mobile-bottom-nav');
+    const coachGear = document.getElementById('btn-coach-gear'); // 🌟 El engranaje del coach
 
     if (!studentView || !trainerView) return;
 
@@ -423,23 +423,25 @@ function switchView(view) {
         if (btnStudent) btnStudent.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md";
         if (btnTrainer) btnTrainer.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-brand-muted hover:text-white";
         
-        // 📱 MOSTRAR BARRA FLOTANTE EN HORIZONTAL
         if (mobileNav) {
             mobileNav.style.setProperty('display', 'flex', 'important');
             mobileNav.style.setProperty('flex-direction', 'row', 'important');
         }
 
+        // 🔒 BLINDAJE DE SEGURIDAD VISUAL
         if (currentUserRole === 'coach') {
             if (btnSettings) btnSettings.style.setProperty('display', 'none', 'important');
             if (btnQr) btnQr.style.setProperty('display', 'none', 'important');
+            if (coachGear) coachGear.style.setProperty('display', 'flex', 'important'); // Visible solo si el coach ve la vista alumno
         } else {
             if (btnSettings) btnSettings.style.setProperty('display', 'flex', 'important');
             if (btnQr) btnQr.style.setProperty('display', 'flex', 'important');
+            if (coachGear) coachGear.style.setProperty('display', 'none', 'important'); // 🌟 OCULTO PARA EL ATLETA
         }
 
         syncStudentView(currentStudentId);
 
-    } else { // 👈 ¡Faltaba este bloque completo y las llaves de cierre!
+    } else { // Vista Trainer / CRM
         studentView.style.setProperty('display', 'none', 'important');
         trainerView.style.setProperty('display', 'block', 'important');
         if (btnTrainer) btnTrainer.className = "px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-brand-red text-white shadow-md";
@@ -449,13 +451,15 @@ function switchView(view) {
             mobileNav.style.setProperty('display', 'none', 'important');
         }
 
+        // En panel de administrador, el engranaje siempre debe verse
+        if (coachGear) coachGear.style.setProperty('display', 'flex', 'important');
+
         const weeklyModal = document.getElementById('modal-weekly-warning');
         if(weeklyModal) weeklyModal.classList.add('hidden');
 
         renderTrainerTable();
     }
 }
-
 
 
         function openImageModal() {
