@@ -1567,7 +1567,7 @@ async function saveStudentData() {
 // ==========================================
 // GUARDAR REGISTRO DE MEDIDAS (100% BLINDADO Y ROBUSTO)
 // ==========================================
-function saveMeasureRecord() {
+async function saveMeasureRecord() {
     const w = document.getElementById('input-weight').value;
     const fat = document.getElementById('input-fat').value || "0";
     const waist = document.getElementById('input-waist').value || "0";
@@ -1578,12 +1578,9 @@ function saveMeasureRecord() {
         return; 
     }
     
-    // 🔒 BÚSQUEDA INTELIGENTE DE ID: Si currentStudentId falla, buscamos en los elementos de la vista o usamos el primero por defecto
     let activeId = (typeof currentStudentId !== 'undefined' && currentStudentId) ? currentStudentId : (studentsList.length > 0 ? studentsList[0].id : 1);
-    
     let student = studentsList.find(s => s.id == activeId);
     
-    // Si aún así no lo encuentra en la lista, forzamos al primer alumno disponible para que nunca falle
     if (!student && studentsList.length > 0) {
         student = studentsList[0];
         activeId = student.id;
@@ -1600,25 +1597,37 @@ function saveMeasureRecord() {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const yyyy = today.getFullYear();
         
-        student.measures.unshift({
+        const nuevoRegistro = {
             date: `${dd}/${mm}/${yyyy}`,
             weight: parseFloat(w),
             fat: parseFloat(fat),
             waist: parseFloat(waist),
             arm: parseFloat(arm),
             note: "Nuevo registro"
-        });
+        };
+
+        student.measures.unshift(nuevoRegistro);
         
-        // Sincronizamos la vista del alumno activo
-        syncStudentView(activeId); 
-        closeAddMeasureModal();
-        showToast("¡Medidas guardadas con éxito!", "fa-ruler-combined");
+        try {
+            // 🌟 GUARDADO CRÍTICO EN SUPABASE PARA QUE NO SE BORRE AL RECARGAR
+            const { error } = await supabaseClient
+                .from('alumnos')
+                .update({ progresos: student.measures })
+                .eq('id', activeId);
+
+            if (error) throw error;
+
+            syncStudentView(activeId); 
+            closeAddMeasureModal();
+            showToast("¡Medidas guardadas y sincronizadas en la Nube!", "fa-ruler-combined");
+        } catch (err) {
+            console.error("Error al guardar medidas en Supabase:", err);
+            showToast("⚠️ Error al sincronizar el peso en la nube.", "fa-triangle-exclamation");
+        }
     } else {
         showToast("Error crítico: No hay atletas cargados en el sistema.", "fa-triangle-exclamation");
-        console.error("studentsList está vacía o no hay alumnos disponibles.");
     }
     
-    // Limpiamos los inputs de manera segura
     document.getElementById('input-weight').value = '';
     document.getElementById('input-fat').value = '';
     document.getElementById('input-waist').value = '';
@@ -1746,9 +1755,9 @@ async function saveStudentProfileChanges() {
             : ((typeof window !== 'undefined' && window.temporaryProfileImage) ? window.temporaryProfileImage : null);
 
         if (activePhoto) {
-            datosActualizados.foto = activePhoto; // Columna exacta en Supabase
+            datosActualizados.foto = activePhoto; 
             student.foto = activePhoto;
-            student.photo = activePhoto; // Respaldo local
+            student.photo = activePhoto; // 🌟 Respaldo dual para evitar que parpadee o se borre
             
             temporaryProfileImage = null;
             if (typeof window !== 'undefined') window.temporaryProfileImage = null; 
