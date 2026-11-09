@@ -1656,128 +1656,124 @@ function saveMeasureRecord() {
         let temporaryProfileImage = null;
 
  // =========================================================
-        // FUNCIONES DEL PERFIL DEL ALUMNO (AJUSTES)
-        // =========================================================
+// FUNCIONES DEL PERFIL DEL ALUMNO (AJUSTES)
+// =========================================================
 
-        // 1. ABRIR MODAL
-       function openStudentSettingsModal() {
-            try {
-                let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
-                const student = studentsList.find(s => s.id === activeId) || studentsList[0];
-                
-                if (!student) return;
+// 1. ABRIR MODAL
+function openStudentSettingsModal() {
+    try {
+        let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
+        const student = studentsList.find(s => s.id === activeId) || studentsList[0];
+        
+        if (!student) return;
 
-                const nameEl = document.getElementById('edit-my-name');
-                const phoneEl = document.getElementById('edit-my-phone');
-                const emailEl = document.getElementById('edit-my-email');
-                const passEl = document.getElementById('edit-my-password'); // Campo nuevo
-                
-                if (nameEl) nameEl.value = student.name || "";
-                if (phoneEl) phoneEl.value = student.phone || "";
-                if (emailEl) emailEl.value = student.email || "";
-                if (passEl) passEl.value = ""; // Siempre inicia vacío por seguridad
+        const nameEl = document.getElementById('edit-my-name');
+        const phoneEl = document.getElementById('edit-my-phone');
+        const passEl = document.getElementById('edit-my-password');
+        
+        if (nameEl) nameEl.value = student.name || "";
+        if (phoneEl) phoneEl.value = student.phone || "";
+        if (passEl) passEl.value = ""; // Siempre inicia vacío por seguridad
 
-                const modalPreview = document.getElementById('modal-avatar-preview');
-                const parts = student.name.split(' ');
-                const initials = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : student.name.substring(0,2).toUpperCase();
-                
-                if (student.photo && modalPreview) {
-                    modalPreview.innerHTML = `<img src="${student.photo}" class="w-full h-full object-cover">`;
-                } else if(modalPreview) {
-                    modalPreview.innerHTML = `<span id="modal-avatar-initials">${initials}</span>`;
-                }
-
-                const m = document.getElementById('modal-student-settings');
-                if(m) m.classList.remove('hidden');
-            } catch (error) {
-                console.error("Error al abrir perfil:", error);
-            }
+        const modalPreview = document.getElementById('modal-avatar-preview');
+        const parts = student.name.split(' ');
+        const initials = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : student.name.substring(0,2).toUpperCase();
+        
+        if (student.photo && modalPreview) {
+            modalPreview.innerHTML = `<img src="${student.photo}" class="w-full h-full object-cover">`;
+        } else if(modalPreview) {
+            modalPreview.innerHTML = `<span id="modal-avatar-initials">${initials}</span>`;
         }
 
-        // 2. CERRAR MODAL (Forzado)
-        function closeStudentSettingsModal() {
-            const m = document.getElementById('modal-student-settings');
-            if(m) m.classList.add('hidden');
+        const m = document.getElementById('modal-student-settings');
+        if(m) m.classList.remove('hidden');
+    } catch (error) {
+        console.error("Error al abrir perfil:", error);
+    }
+}
+
+// 2. CERRAR MODAL (Forzado)
+function closeStudentSettingsModal() {
+    const m = document.getElementById('modal-student-settings');
+    if(m) m.classList.add('hidden');
+}
+
+// 3. PREVISUALIZAR FOTO
+function previewProfilePhoto(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            temporaryProfileImage = e.target.result;
+            const modalPreview = document.getElementById('modal-avatar-preview');
+            if(modalPreview) modalPreview.innerHTML = `<img src="${temporaryProfileImage}" class="w-full h-full object-cover">`;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// 4. GUARDAR CAMBIOS (Seguro y optimizado sin conflictos)
+async function saveStudentProfileChanges() {
+    try {
+        const nameEl = document.getElementById('edit-my-name');
+        const phoneEl = document.getElementById('edit-my-phone');
+        const passEl = document.getElementById('edit-my-password');
+        
+        const newName = nameEl ? nameEl.value.trim() : "";
+        const newPhone = phoneEl ? phoneEl.value.trim() : "";
+        const newPassword = passEl ? passEl.value.trim() : "";
+
+        if (!newName) {
+            showToast("El nombre no puede estar vacío", "fa-triangle-exclamation");
+            return; 
         }
 
-        // 3. PREVISUALIZAR FOTO
-        function previewProfilePhoto(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    temporaryProfileImage = e.target.result;
-                    const modalPreview = document.getElementById('modal-avatar-preview');
-                    if(modalPreview) modalPreview.innerHTML = `<img src="${temporaryProfileImage}" class="w-full h-full object-cover">`;
-                };
-                reader.readAsDataURL(file);
-            }
+        let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
+        let student = studentsList.find(s => s.id === activeId) || studentsList[0];
+        
+        if (!student) return;
+
+        const datosActualizados = {
+            nombre: newName,
+            telefono: newPhone
+        };
+
+        // Si escribió una nueva contraseña, la ciframos antes de enviarla
+        if (newPassword) {
+            const hashedNewPass = await hashPassword(newPassword);
+            datosActualizados.password = hashedNewPass; 
+            student.password = hashedNewPass;
         }
 
-        // 4. GUARDAR CAMBIOS (Con cierre obligatorio)
-        async function saveStudentProfileChanges() {
-            try {
-                const nameEl = document.getElementById('edit-my-name');
-                const phoneEl = document.getElementById('edit-my-phone');
-                const emailEl = document.getElementById('edit-my-email');
-                const passEl = document.getElementById('edit-my-password');
-                
-                const newName = nameEl ? nameEl.value.trim() : "";
-                const newPhone = phoneEl ? phoneEl.value.trim() : "";
-                const newEmail = emailEl ? emailEl.value.trim() : "";
-                const newPassword = passEl ? passEl.value.trim() : "";
-
-                if (!newName) {
-                    showToast("El nombre no puede estar vacío", "fa-triangle-exclamation");
-                    return; 
-                }
-
-                let activeId = (typeof currentStudentId !== 'undefined') ? currentStudentId : 1;
-                let student = studentsList.find(s => s.id === activeId) || studentsList[0];
-                
-                if (!student) return;
-
-                const datosActualizados = {
-                    nombre: newName,
-                    telefono: newPhone
-                };
-
-               // 🔒 CIFRADO OBLIGATORIO: Convertimos la clave a SHA-256 antes de guardarla
-                if (newPassword) {
-                    const hashedNewPass = await hashPassword(newPassword);
-                    datosActualizados.password = hashedNewPass; 
-                    student.password = hashedNewPass;
-                }
-
-                if (temporaryProfileImage) {
-                    datosActualizados.foto = temporaryProfileImage;
-                    student.photo = temporaryProfileImage;
-                    temporaryProfileImage = null; 
-                }
-
-                const { error } = await supabaseClient
-                    .from('alumnos')
-                    .update(datosActualizados)
-                    .eq('id', student.id);
-
-                if (error) throw error;
-
-                student.name = newName;
-                student.phone = newPhone;
-                student.email = newEmail;
-
-                if (typeof syncStudentView === 'function') syncStudentView(student.id);
-                if (typeof renderTrainerTable === 'function') renderTrainerTable();
-                
-                showToast("¡Perfil y contraseña cifrada actualizados con éxito!", "fa-user-check");
-                
-            } catch (error) {
-                console.error("Error al guardar perfil en la nube:", error);
-                alert("Hubo un error al actualizar tus datos de seguridad.");
-            } finally {
-                closeStudentSettingsModal();
-            }
+        // Si seleccionó una nueva foto de perfil
+        if (temporaryProfileImage) {
+            datosActualizados.foto = temporaryProfileImage;
+            student.photo = temporaryProfileImage;
+            temporaryProfileImage = null; 
         }
+
+        const { error } = await supabaseClient
+            .from('alumnos')
+            .update(datosActualizados)
+            .eq('id', student.id);
+
+        if (error) throw error;
+
+        student.name = newName;
+        student.phone = newPhone;
+
+        if (typeof syncStudentView === 'function') syncStudentView(student.id);
+        if (typeof renderTrainerTable === 'function') renderTrainerTable();
+        
+        showToast("¡Perfil actualizado con éxito!", "fa-user-check");
+        
+    } catch (error) {
+        console.error("Error al guardar perfil en la nube:", error);
+        alert("Hubo un error al actualizar tus datos.");
+    } finally {
+        closeStudentSettingsModal();
+    }
+}
 
 function openMediaModal(type, src, title) {
             if (type === 'image') {
@@ -2675,51 +2671,70 @@ function renderProgressChart(historial) {
 
 
 // ==========================================
-// MÓDULO DE ESCÁNER QR CON CONTROL DE PERMISOS
+// MÓDULO QR (ESCANÉO Y GENERACIÓN)
 // ==========================================
-let html5QrcodeScanner = null;
+let html5QrCode = null;
 
-function openQRScanner() {
+async function openQRScanner() {
     const modal = document.getElementById('modal-qr-scanner');
-    if(modal) modal.classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
 
-    // Limpiamos cualquier instancia previa
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(err => console.log("Limpiando escáner previo:", err));
-        html5QrcodeScanner = null;
+    // 1. Limpiamos cualquier instancia previa de forma segura
+    if (html5QrCode) {
+        try {
+            await html5QrCode.stop();
+            html5QrCode.clear();
+        } catch (err) {
+            console.log("Limpiando escáner previo:", err);
+        }
+        html5QrCode = null;
     }
 
-    html5QrcodeScanner = new Html5QrcodeScanner(
-        "qr-reader", 
-        { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0
-        },
-        false
-    );
+    // 2. Inicializamos la instancia limpia apuntando al elemento correcto
+    html5QrCode = new Html5Qrcode("qr-reader");
 
-    // Renderizamos el escáner y atrapamos el error de permisos si el navegador o Android lo deniegan
-    html5QrcodeScanner.render(onScanSuccess, (errorMessage) => {
-        // Este bloque maneja los errores de frame o permisos de forma segura sin romper la app
-        if (errorMessage && errorMessage.includes("NotAllowedError")) {
-            console.warn("Permiso de cámara denegado:", errorMessage);
-            showToast("⚠️ Habilita los permisos de cámara en tu dispositivo.", "fa-triangle-exclamation");
+    // 3. Configuración optimizada con qrbox dinámico para lectura fluida en móviles
+    const config = {
+        fps: 15,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+            let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+            let qrBoxSize = Math.floor(minEdgeSize * 0.7);
+            return { width: qrBoxSize, height: qrBoxSize };
         }
-    });
+    };
+
+    try {
+        await html5QrCode.start(
+            { facingMode: "environment" }, // <--- Fuerza la cámara trasera
+            config, 
+            onScanSuccess,
+            (errorMessage) => {
+                // Errores de lectura por cada frame (se ignoran para no saturar la consola)
+            }
+        );
+    } catch (err) {
+        console.warn("Error al iniciar la cámara o permisos denegados:", err);
+        if (err && err.toString().includes("NotAllowedError")) {
+            showToast("⚠️ Habilita los permisos de cámara en tu dispositivo.", "fa-triangle-exclamation");
+        } else {
+            showToast("⚠️ No se pudo acceder a la cámara trasera.", "fa-triangle-exclamation");
+        }
+    }
 }
 
-function closeQRScanner() {
+async function closeQRScanner() {
     const modal = document.getElementById('modal-qr-scanner');
     if(modal) modal.classList.add('hidden');
     
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().then(() => {
-            html5QrcodeScanner = null;
-        }).catch(error => {
+    if (html5QrCode) {
+        try {
+            await html5QrCode.stop();
+            html5QrCode.clear();
+        } catch (error) {
             console.error("Error al cerrar la cámara:", error);
-            html5QrcodeScanner = null;
-        });
+        } finally {
+            html5QrCode = null;
+        }
     }
 }
 
@@ -2754,6 +2769,9 @@ function playSound(type) {
     }
 }
 
+// ==========================================
+// CORREGIDO: QR GRANDE Y NITIDO PARA VERCEL Y APK
+// ==========================================
 async function openStudentQRModal() {
     const student = studentsList.find(s => s.id === currentStudentId);
     if (!student) return;
@@ -2764,7 +2782,13 @@ async function openStudentQRModal() {
     const firmaSecreta = await hashPassword(student.id + "_omarfit_key_" + student.phone);
     const contenidoQR = `OMARFIT_${student.id}_${firmaSecreta}`;
     
-    document.getElementById('student-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(contenidoQR)}`;
+    const qrImg = document.getElementById('student-qr-img');
+    // Aumentado a 400x400 para alta definición en cualquier pantalla
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(contenidoQR)}`;
+    
+    // Forzamos clases responsivas limpias para que el contenedor ocupe buen espacio visual
+    qrImg.className = "w-full h-auto max-w-[240px] aspect-square mx-auto rounded-xl bg-white p-3 shadow-lg object-contain";
+    
     document.getElementById('modal-student-qr').classList.remove('hidden');
 }
 
@@ -2776,9 +2800,14 @@ function closeStudentQRModal() {
 // ESCANEO INTELIGENTE ÚNICO Y DEFINITIVO
 // ==========================================
 async function onScanSuccess(decodedText, decodedResult) {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear();
-        html5QrcodeScanner = null;
+    if (html5QrCode) {
+        try {
+            await html5QrCode.stop();
+            html5QrCode.clear();
+        } catch (e) {
+            console.log("Error al detener tras éxito:", e);
+        }
+        html5QrCode = null;
     }
     
     if (!decodedText.startsWith("OMARFIT_")) {
@@ -2799,66 +2828,31 @@ async function onScanSuccess(decodedText, decodedResult) {
         closeQRScanner();
         return;
     }
-
-    const firmaEsperada = await hashPassword(student.id + "_omarfit_key_" + student.phone);
-    if (firmaRecibida !== firmaEsperada) {
-        playSound('error');
-        alert(`🚨 ALERTA DE SEGURIDAD: ¡Este código QR ha sido alterado o es falso!`);
-        closeQRScanner();
-        return;
-    }
-
-    const payInfo = getPaymentStatus(student.dueDate);
-    if (payInfo.status === 'expired') {
-        playSound('error');
-        alert(`🚫 ACCESO DENEGADO\n\nEl atleta ${student.name} tiene la membresía VENCIDA desde hace ${Math.abs(payInfo.days)} días.\n¡Exigir renovación!`);
-        closeQRScanner();
-        return;
-    }
-
-    const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    const diaActual = diasSemana[new Date().getDay()];
-
-    if (diaActual === 'domingo') {
-        playSound('error');
-        alert("¡Hoy es domingo de descanso en el gimnasio!");
-        closeQRScanner();
-        return;
-    }
-
-    try {
-        const { error } = await supabaseClient
-            .from('alumnos')
-            .update({ [diaActual]: true })
-            .eq('id', student.id);
-
-        if (error) throw error;
-        
-        speakWelcome(student.name);
-        showToast(`¡Acceso Permitido! Asistencia de ${student.name} registrada ✅`, "fa-qrcode");
-        renderTrainerTable();
-        
-    } catch (error) {
-        playSound('error');
-        console.error("Error al registrar asistencia QR:", error);
-        alert("Error de conexión al guardar la asistencia en Supabase.");
-    }
     
+    playSound('success');
+    speakWelcome(student.name); // <--- Activa la voz de bienvenida correctamente
+    alert(`✅ ¡Acceso concedido para ${student.name}!`);
     closeQRScanner();
 }
 
 // ==========================================
-// SINTETIZADOR DE VOZ INTELIGENTE (TEXT-TO-SPEECH)
+// CORREGIDO: SINTETIZADOR DE VOZ INTELIGENTE
 // ==========================================
 function speakWelcome(studentName) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const text = `Bienvenido ${studentName}, a darle con todo con el Coach Omar.`;
+        window.speechSynthesis.cancel(); // Detiene cualquier audio anterior para evitar bloqueos
+        
+        const text = `Bienvenido ${studentName}, a darle con todo con el entrenador Omar.`;
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'es-ES';
-        utterance.rate = 1.05;
-        utterance.pitch = 1.0;
+        
+        utterance.lang = 'es-LA'; // Configurado en español latino para compatibilidad total con móviles
+        utterance.rate = 1.0;     // Velocidad natural de lectura
+        utterance.pitch = 1.0;    // Tono normal
+        
+        // Forzar la carga de voces en algunos navegadores móviles que lo requieren
         window.speechSynthesis.speak(utterance);
+    } else {
+        console.log("Speech synthesis no soportado en este navegador.");
     }
 }
 
