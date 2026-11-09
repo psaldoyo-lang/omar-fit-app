@@ -1741,17 +1741,14 @@ async function saveStudentProfileChanges() {
             student.password = hashedNewPass;
         }
 
-        // Capturamos la foto seleccionada de forma segura
         const activePhoto = (typeof temporaryProfileImage !== 'undefined' && temporaryProfileImage) 
             ? temporaryProfileImage 
             : ((typeof window !== 'undefined' && window.temporaryProfileImage) ? window.temporaryProfileImage : null);
 
         if (activePhoto) {
-            datosActualizados.foto = activePhoto;
-            
-            // 🌟 ACTUALIZACIÓN INMEDIATA EN MEMORIA LOCAL
+            datosActualizados.foto = activePhoto; // Columna exacta en Supabase
             student.foto = activePhoto;
-            student.photo = activePhoto;
+            student.photo = activePhoto; // Respaldo local
             
             temporaryProfileImage = null;
             if (typeof window !== 'undefined') window.temporaryProfileImage = null; 
@@ -1767,11 +1764,10 @@ async function saveStudentProfileChanges() {
         student.name = newName;
         student.phone = newPhone;
 
-        // Refrescamos la interfaz visual para que pinte la foto nueva de inmediato
         if (typeof syncStudentView === 'function') syncStudentView(student.id);
         if (typeof renderTrainerTable === 'function') renderTrainerTable();
         
-        showToast("¡Perfil y foto actualizados con éxito!", "fa-user-check");
+        showToast("¡Perfil actualizado con éxito!", "fa-user-check");
         
     } catch (error) {
         console.error("Error al guardar perfil en la nube:", error);
@@ -2835,9 +2831,8 @@ async function onScanSuccess(decodedText, decodedResult) {
     }
     
     try {
-        // 1. Detectar el día actual de la semana en minúsculas y sin tildes
         const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-        const hoyIndex = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
+        const hoyIndex = new Date().getDay(); 
         const diaActual = diasSemana[hoyIndex];
 
         if (diaActual === 'domingo') {
@@ -2847,13 +2842,9 @@ async function onScanSuccess(decodedText, decodedResult) {
             return;
         }
 
-        // 2. Preparamos el valor a actualizar (por ejemplo, registrar la hora actual o marcar un texto/asistió)
-        const horaActual = new Date().toLocaleTimeString();
-        const datoAsistencia = `Asistió (${horaActual})`;
-
-        // 3. Actualizamos directamente la columna del día correspondiente en Supabase
+        // Supabase espera un valor booleano (true) en estas columnas
         const objetoActualizacion = {};
-        objetoActualizacion[diaActual] = datoAsistencia;
+        objetoActualizacion[diaActual] = true;
 
         const { error: updateError } = await supabaseClient
             .from('alumnos')
@@ -2867,7 +2858,11 @@ async function onScanSuccess(decodedText, decodedResult) {
             return;
         }
 
-        console.log(`¡Asistencia del día ${diaActual} registrada con éxito!`);
+        // Actualizamos estado local
+        student[diaActual] = true;
+        
+        if (typeof syncStudentView === 'function') syncStudentView(scannedId);
+        if (typeof renderTrainerTable === 'function') renderTrainerTable();
 
     } catch (dbErr) {
         console.error("Error crítico al registrar asistencia:", dbErr);
@@ -2878,6 +2873,7 @@ async function onScanSuccess(decodedText, decodedResult) {
     alert(`✅ ¡Asistencia registrada (${student.name}) para hoy!`);
     closeQRScanner();
 }
+
 // ==========================================
 // CORREGIDO: SINTETIZADOR DE VOZ INTELIGENTE
 // ==========================================
