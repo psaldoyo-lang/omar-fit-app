@@ -845,7 +845,7 @@ function syncStudentView(studentId = 1) {
     }
 
     if (typeof renderProgressChart === 'function') {
-        renderProgressChart(curStudent.progresos);
+        renderProgressChart(curStudent.progresos, curStudent.id); // 🌟 ¡Añadimos 'curStudent.id' aquí!
     }
 }
 
