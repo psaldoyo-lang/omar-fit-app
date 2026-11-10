@@ -109,10 +109,34 @@ const videoCache = {};
         let filterStatus = 'all';
         let currentStudentId = 1; // NUEVO: Rastreador del atleta que tiene la sesión iniciada
         let currentUserRole = 'student'; // NUEVO: Rastrea si es 'coach' o 'student'
-        window.onload = function() {
-            renderExercises(currentDay);
-            renderTrainerTable();
-            syncStudentView(currentStudentId);
+       window.onload = function() {
+            // 🌟 RECUPERAR SESIÓN AUTOMÁTICA AL ABRIR LA APP
+            const savedStudentId = localStorage.getItem('omarfit_logged_id');
+            const savedRole = localStorage.getItem('omarfit_role');
+
+            if (savedStudentId && savedRole === 'student') {
+                currentStudentId = parseInt(savedStudentId);
+                currentUserRole = 'student';
+                
+                const loginView = document.getElementById('view-login');
+                const header = document.getElementById('app-header');
+                const main = document.getElementById('app-main');
+                const roleText = document.getElementById('header-role-text');
+                const coachToggles = document.getElementById('coach-toggles');
+                
+                if(loginView) loginView.classList.add('hidden');
+                if(header) header.classList.remove('hidden');
+                if(main) main.classList.remove('hidden');
+                if(coachToggles) coachToggles.classList.add('hidden');
+                if(roleText) roleText.innerText = "Modo Atleta";
+                
+                switchView('student');
+                syncStudentView(currentStudentId);
+            } else {
+                renderExercises(currentDay);
+                renderTrainerTable();
+                syncStudentView(currentStudentId);
+            }
             
             const bgVideo = document.getElementById('login-video');
             if (bgVideo) bgVideo.playbackRate = 1.4;
@@ -231,7 +255,7 @@ const videoCache = {};
                     }
                 }
 
-                // SI TODO ES CORRECTO
+               // SI TODO ES CORRECTO
                 if (isAuthValid && foundStudent) {
                     if(loginView) loginView.classList.add('opacity-0');
                     setTimeout(() => {
@@ -243,6 +267,11 @@ const videoCache = {};
                         if(roleText) roleText.innerText = "Modo Atleta";
                         
                         currentStudentId = foundStudent.id; // Asignamos la sesión a este atleta
+                        
+                        // 🌟 AQUÍ COLOCAS LAS LÍNEAS DE PERSISTENCIA:
+                        localStorage.setItem('omarfit_logged_id', foundStudent.id);
+                        localStorage.setItem('omarfit_role', 'student');
+
                         switchView('student');
                         syncStudentView(currentStudentId);
                         showToast("¡A entrenar con todo! 🔥", "fa-fire");
@@ -2030,6 +2059,9 @@ function exportToCSV() {
         // FUNCIÓN PARA CERRAR SESIÓN
         // =========================================================
         function logoutApp() {
+           
+            localStorage.removeItem('omarfit_logged_id');
+            localStorage.removeItem('omarfit_role');
             // 1. Cerramos cualquier ventana modal que esté abierta por si acaso
             if (typeof closeStudentSettingsModal === 'function') closeStudentSettingsModal();
             
