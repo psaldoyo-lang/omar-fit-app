@@ -845,7 +845,9 @@ function syncStudentView(studentId = 1) {
     }
 
     if (typeof renderProgressChart === 'function') {
-        renderProgressChart(curStudent.progresos, curStudent.id); // 🌟 ¡Añadimos 'curStudent.id' aquí!
+        // 🌟 Respaldo inteligente: Si 'progresos' está vacío, usamos 'measures' para alimentar la gráfica
+        const datosGrafica = (curStudent.progresos && curStudent.progresos.length > 0) ? curStudent.progresos : curStudent.measures;
+        renderProgressChart(datosGrafica, curStudent.id);
     }
 }
 
