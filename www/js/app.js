@@ -763,28 +763,34 @@ function syncStudentView(studentId = 1) {
     if (measuresBody) {
         measuresBody.innerHTML = ''; 
         
-        if (measures.length === 0) {
+        // 🛡️ Filtro estricto para ignorar filas vacías o corruptas
+        const measuresValidas = measures.filter(m => m && typeof m === 'object' && (m.date || m.weight > 0));
+        
+        if (measuresValidas.length === 0) {
             measuresBody.innerHTML = `<tr><td colspan="7" class="py-4 px-3 text-center text-zinc-500 font-bold text-xs">Aún no hay medidas. Añade tu primer registro.</td></tr>`;
         } else {
-           measures.forEach((m, index) => {
-                        const tr = document.createElement('tr');
-                        tr.className = "hover:bg-zinc-900/50 transition-colors";
-                        tr.innerHTML = `
-                            <td class="py-3 px-3 font-bold text-white">${m.date}</td>
-                            <td class="py-3 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
-                            <td class="py-3 px-3 text-white">${m.pierna > 0 ? m.pierna + ' cm' : '--'}</td>
-                            <td class="py-3 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
-                            <td class="py-3 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
-                            <td class="py-3 px-3 text-emerald-400 font-bold">${m.note}</td>
-                            <td class="py-3 px-3 text-center">
-                                <button onclick="deleteMeasure(${curStudent.id}, ${index})" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </td>
-                        `;
-                        measuresBody.appendChild(tr);
-                    });
+           measuresValidas.forEach((m) => {
+               // Buscamos el índice real exacto en el array original para que borre el correcto
+               const realIndex = measures.indexOf(m);
+               const tr = document.createElement('tr');
+               tr.className = "hover:bg-zinc-900/50 transition-colors";
+               tr.innerHTML = `
+                   <td class="py-3 px-3 font-bold text-white">${m.date || '--/--/----'}</td>
+                   <td class="py-3 px-3 text-brand-red font-bold">${m.weight > 0 ? m.weight + ' kg' : '--'}</td>
+                   <td class="py-3 px-3 text-white">${m.pierna > 0 ? m.pierna + ' cm' : '--'}</td>
+                   <td class="py-3 px-3 text-white">${m.waist > 0 ? m.waist + ' cm' : '--'}</td>
+                   <td class="py-3 px-3 text-white">${m.arm > 0 ? m.arm + ' cm' : '--'}</td>
+                   <td class="py-3 px-3 text-emerald-400 font-bold">${m.note || 'Nuevo registro'}</td>
+                   <td class="py-3 px-3 text-center">
+                       <button onclick="deleteMeasure(${curStudent.id}, ${realIndex})" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]" title="Eliminar registro">
+                           <i class="fa-solid fa-trash-can"></i>
+                       </button>
+                   </td>
+               `;
+               measuresBody.appendChild(tr);
+           });
         }
+    }
     }
 
     const latestWeight = measures.length > 0 && measures[0].weight > 0 ? measures[0].weight + ' kg' : '-- kg';
@@ -2911,7 +2917,7 @@ function renderProgressChart(historial, studentId) {
 }
 
 // =========================================================
-// CONFIRMAR Y ELIMINAR REGISTRO DE PROGRESO (SOLO COACH)
+// CONFIRMAR Y ELIMINAR REGISTRO DE PROGRESO DE FUERZA (SOLO COACH)
 // =========================================================
 async function confirmDeleteProgress(studentId, progressIndex) {
     if (currentUserRole !== 'coach') {
@@ -2919,11 +2925,11 @@ async function confirmDeleteProgress(studentId, progressIndex) {
         return;
     }
 
-    const confirmDelete = confirm("¿Estás seguro de eliminar este registro de progreso erróneo?");
+    const confirmDelete = confirm("¿Estás seguro de eliminar este registro de progreso de fuerza?");
     if (!confirmDelete) return;
 
     try {
-        const student = studentsList.get ? studentsList.find(s => s.id === studentId) : studentsList.find(s => s.id === studentId);
+        const student = studentsList.find(s => s.id === studentId);
         if (!student) throw new Error("Atleta no encontrado");
 
         let progresosLimpios = [];
@@ -2936,7 +2942,7 @@ async function confirmDeleteProgress(studentId, progressIndex) {
         // 🔪 Eliminamos quirúrgicamente usando el índice real exacto (_originalIndex)
         progresosLimpios.splice(progressIndex, 1);
 
-        // Actualizamos en Supabase en la tabla 'alumnos' y columna 'progresos'
+        // Actualizamos en Supabase la columna 'progresos' de la tabla 'alumnos'
         const { error } = await supabaseClient
             .from('alumnos')
             .update({ progresos: progresosLimpios })
@@ -2946,7 +2952,7 @@ async function confirmDeleteProgress(studentId, progressIndex) {
 
         student.progresos = progresosLimpios;
 
-        // Refrescamos la vista del alumno y la tabla del coach
+        // Refrescamos la vista del alumno para que la gráfica y su lista se actualicen al instante
         if (typeof syncStudentView === 'function') {
             syncStudentView(studentId);
         }
@@ -2954,7 +2960,7 @@ async function confirmDeleteProgress(studentId, progressIndex) {
             renderTrainerTable();
         }
 
-        showToast("Registro eliminado correctamente", "fa-trash-can");
+        showToast("Registro de fuerza eliminado correctamente", "fa-trash-can");
 
     } catch (err) {
         console.error("Error al eliminar el progreso:", err);
