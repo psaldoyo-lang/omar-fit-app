@@ -2772,7 +2772,7 @@ function renderProgressChart(historial, studentId) {
         
         if (!canvas || !emptyState || !chartContainer) return;
 
-        // 1. Extraer y limpiar los datos y sus índices reales del array original
+        // 1. Extraer y limpiar los datos de 'progresos' y sus índices reales
         let rawData = [];
         if (typeof historial === 'string') {
             try { rawData = JSON.parse(historial); } catch(e) { rawData = []; }
@@ -2796,55 +2796,59 @@ function renderProgressChart(historial, studentId) {
                    (parseFloat(h.ext) > 0);
         });
 
-        // 3. GESTIÓN AUTOMÁTICA DEL TACHITO DEL COACH EN LA TARJETA
-        // Buscamos o creamos el contenedor de acciones del coach dentro de la tarjeta de evolución
-        let cardHeader = chartContainer.closest('.bg-[#101014], .bg-zinc-900, div') || chartContainer.parentNode;
-        let coachActionsContainer = document.getElementById('coach-chart-actions');
-        
-        if (!coachActionsContainer) {
-            coachActionsContainer = document.createElement('div');
-            coachActionsContainer.id = 'coach-chart-actions';
-            coachActionsContainer.className = 'flex items-center gap-2 mt-2 sm:mt-0';
-            
-            // Intentamos ponérselo al lado del título "EVOLUCIÓN DE FUERZA"
-            const titleEl = cardHeader.querySelector('h3');
-            if (titleEl && titleEl.parentNode) {
-                titleEl.parentNode.classList.add('flex', 'flex-wrap', 'justify-between', 'items-center');
-                titleEl.parentNode.appendChild(coachActionsContainer);
-            } else {
-                chartContainer.parentNode.insertBefore(coachActionsContainer, chartContainer);
-            }
+        // 3. GESTIÓN DEL CONTENEDOR DE BORRADO PARA EL COACH (DEBAJO DE LA GRÁFICA)
+        let coachDeleteList = document.getElementById('coach-delete-records-list');
+        if (!coachDeleteList) {
+            coachDeleteList = document.createElement('div');
+            coachDeleteList.id = 'coach-delete-records-list';
+            coachDeleteList.className = 'mt-4 space-y-2';
+            chartContainer.parentNode.appendChild(coachDeleteList);
         }
-        coachActionsContainer.innerHTML = '';
+        coachDeleteList.innerHTML = '';
 
         if (historialValido.length === 0) {
             chartContainer.style.display = 'none';
             chartContainer.classList.add('hidden');
             emptyState.style.display = 'flex';
             emptyState.classList.remove('hidden');
-            coachActionsContainer.style.display = 'none';
+            coachDeleteList.style.display = 'none';
             return; 
         } else {
             emptyState.style.display = 'none';
             emptyState.classList.add('hidden');
             chartContainer.style.display = 'block';
             chartContainer.classList.remove('hidden');
-            coachActionsContainer.style.display = 'flex';
+            coachDeleteList.style.display = 'block';
         }
 
-        // 4. Si es el Coach, inyectamos los botones de borrado para los meses visibles
+        // 4. SI ES EL COACH, RENDERIZAMOS LA LISTA DE GESTIÓN CON TACHITO
         if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && studentId) {
-            const registrosRecientes = historialValido.slice(-2);
-            registrosRecientes.forEach(reg => {
+            const titleHtml = document.createElement('div');
+            titleHtml.className = 'text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center justify-between px-1';
+            titleHtml.innerHTML = `<span>Gestión de Récords (Coach)</span><span>Acciones</span>`;
+            coachDeleteList.appendChild(titleHtml);
+
+            historialValido.forEach((reg) => {
+                const rowItem = document.createElement('div');
+                rowItem.className = 'bg-[#15151a] border border-zinc-800 p-3 rounded-xl flex items-center justify-between text-xs text-white shadow-sm';
+                rowItem.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="font-black text-brand-red">${reg.mes || 'Mes'}</span>
+                        <span class="text-zinc-400">Sq: ${reg.sentadilla || 0}kg | Muerto: ${reg.muerto || 0}kg | Banca: ${reg.banca || 0}kg</span>
+                    </div>
+                `;
+
                 const btnDelete = document.createElement('button');
-                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 border border-red-500/20 flex items-center gap-1.5 shadow-md';
-                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> <span>Borrar ${reg.mes || 'Mes'}</span>`;
+                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1.5 rounded-lg font-bold transition-all border border-red-500/20 flex items-center gap-1.5';
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can text-xs"></i> Borrar`;
                 btnDelete.onclick = () => confirmDeleteProgress(studentId, reg._originalIndex);
-                coachActionsContainer.appendChild(btnDelete);
+                
+                rowItem.appendChild(btnDelete);
+                coachDeleteList.appendChild(rowItem);
             });
         }
 
-        // 5. Retraso para Chart.js
+        // 5. Renderizado de Chart.js
         setTimeout(() => {
             if (typeof progressChartInstance !== 'undefined' && progressChartInstance !== null) {
                 progressChartInstance.destroy();
@@ -2919,28 +2923,28 @@ async function confirmDeleteProgress(studentId, progressIndex) {
     if (!confirmDelete) return;
 
     try {
-        const student = studentsList.find(s => s.id === studentId);
+        const student = studentsList.get ? studentsList.find(s => s.id === studentId) : studentsList.find(s => s.id === studentId);
         if (!student) throw new Error("Atleta no encontrado");
 
-        let measures = [];
-        if (typeof student.measures === 'string') {
-            measures = JSON.parse(student.measures || '[]');
-        } else if (Array.isArray(student.measures)) {
-            measures = [...student.measures];
+        let progresosLimpios = [];
+        if (typeof student.progresos === 'string') {
+            try { progresosLimpios = JSON.parse(student.progresos || '[]'); } catch(e) { progresosLimpios = []; }
+        } else if (Array.isArray(student.progresos)) {
+            progresosLimpios = [...student.progresos];
         }
 
         // 🔪 Eliminamos quirúrgicamente usando el índice real exacto (_originalIndex)
-        measures.splice(progressIndex, 1);
+        progresosLimpios.splice(progressIndex, 1);
 
-        // Actualizamos en Supabase la columna 'measures'
+        // Actualizamos en Supabase en la tabla 'alumnos' y columna 'progresos'
         const { error } = await supabaseClient
-            .from('students')
-            .update({ measures: measures })
+            .from('alumnos')
+            .update({ progresos: progresosLimpios })
             .eq('id', studentId);
 
         if (error) throw error;
 
-        student.measures = measures;
+        student.progresos = progresosLimpios;
 
         // Refrescamos la vista del alumno y la tabla del coach
         if (typeof syncStudentView === 'function') {
