@@ -105,37 +105,73 @@ const videoCache = {};
             return { status: 'paid', days: diffDays };
         }
 
-  let currentDay = 'lun';
+ let currentDay = 'lun';
         let filterStatus = 'all';
-        let currentStudentId = 1; // NUEVO: Rastreador del atleta que tiene la sesión iniciada
-        let currentUserRole = 'student'; // NUEVO: Rastrea si es 'coach' o 'student'
-       window.onload = function() {
-            // 🌟 RECUPERAR SESIÓN AUTOMÁTICA AL ABRIR LA APP
+        let currentStudentId = null; // 🔒 BLINDADO: Nace vacío, JAMÁS en 1
+        let currentUserRole = null;  // 🔒 BLINDADO: Nace vacío hasta validar sesión
+
+        window.onload = async function() {
+            // 🌟 1. LEER SESIÓN GUARDADA EN EL DISPOSITIVO
             const savedStudentId = localStorage.getItem('omarfit_logged_id');
             const savedRole = localStorage.getItem('omarfit_role');
 
-            if (savedStudentId && savedRole === 'student') {
-                currentStudentId = parseInt(savedStudentId);
+            const loginView = document.getElementById('view-login');
+            const header = document.getElementById('app-header');
+            const main = document.getElementById('app-main');
+            const roleText = document.getElementById('header-role-text');
+            const coachToggles = document.getElementById('coach-toggles');
+            const coachGear = document.getElementById('btn-coach-gear');
+
+            // 🌟 2. SI HAY UNA SESIÓN VÁLIDA DE ATLETA
+            if (savedStudentId && savedRole === 'student' && savedStudentId !== 'null' && savedStudentId !== 'undefined') {
+                const lockedId = parseInt(savedStudentId, 10);
+                currentStudentId = lockedId;
                 currentUserRole = 'student';
                 
-                const loginView = document.getElementById('view-login');
-                const header = document.getElementById('app-header');
-                const main = document.getElementById('app-main');
-                const roleText = document.getElementById('header-role-text');
-                const coachToggles = document.getElementById('coach-toggles');
+                if (loginView) loginView.classList.add('hidden');
+                if (header) header.classList.remove('hidden');
+                if (main) main.classList.remove('hidden');
+                if (coachToggles) coachToggles.classList.add('hidden');
+                if (coachGear) coachGear.style.setProperty('display', 'none', 'important');
+                if (roleText) roleText.innerText = "Modo Atleta";
                 
-                if(loginView) loginView.classList.add('hidden');
-                if(header) header.classList.remove('hidden');
-                if(main) main.classList.remove('hidden');
-                if(coachToggles) coachToggles.classList.add('hidden');
-                if(roleText) roleText.innerText = "Modo Atleta";
+                // ⏳ CRÍTICO: Esperamos a que Supabase descargue la lista de atletas primero
+                if (typeof renderTrainerTable === 'function') {
+                    await renderTrainerTable();
+                }
+
+                // 🔒 Re-forzamos el ID del alumno logueado por si renderTrainerTable lo alteró
+                currentStudentId = lockedId;
+                currentUserRole = 'student';
                 
                 switchView('student');
-                syncStudentView(currentStudentId);
+                syncStudentView(lockedId);
+
+                // Doble candado de seguridad 300ms después por si la red demora
+                setTimeout(() => {
+                    currentStudentId = lockedId;
+                    syncStudentView(lockedId);
+                }, 300);
+
             } else {
+                // 🔒 3. SI NO HAY SESIÓN ACTIVA: Limpiamos todo y mostramos Login
+                localStorage.removeItem('omarfit_logged_id');
+                localStorage.removeItem('omarfit_role');
+                currentStudentId = null;
+                currentUserRole = null;
+
+                if (loginView) {
+                    loginView.classList.remove('hidden');
+                    loginView.classList.remove('opacity-0');
+                }
+                if (header) header.classList.add('hidden');
+                if (main) main.classList.add('hidden');
+
                 renderExercises(currentDay);
-                renderTrainerTable();
-                syncStudentView(currentStudentId);
+                if (typeof renderTrainerTable === 'function') {
+                    await renderTrainerTable();
+                }
+                // ❌ ELIMINADO syncStudentView(1) de aquí para que NUNCA cargue a Pablo Thomas por defecto
             }
             
             const bgVideo = document.getElementById('login-video');
@@ -1185,8 +1221,14 @@ studentsList = alumnosNube.map(a => {
 
         updateTrainerStats();
         
-        // 🔥 LA PIEZA FALTANTE: Refrescar la pantalla del alumno apenas llegue la data
-        syncStudentView(currentStudentId);
+       // 🔥 LA PIEZA FALTANTE (BLINDADA): Solo refresca si hay una sesión real activa
+            const savedId = localStorage.getItem('omarfit_logged_id');
+            if (savedId && savedId !== 'null' && savedId !== 'undefined') {
+                currentStudentId = parseInt(savedId, 10);
+                syncStudentView(currentStudentId);
+            } else if (currentStudentId) {
+                syncStudentView(currentStudentId);
+            }
 
     } catch (error) {
         console.error("Error al cargar la tabla:", error);
@@ -2107,7 +2149,7 @@ function exportToCSV() {
             }
         }
 
-        
+
         function openCoachSettingsModal() {
             const modal = document.getElementById('modal-coach-settings');
             if (modal) modal.classList.remove('hidden');
@@ -2439,22 +2481,98 @@ async function saveRoutineCoach() {
     }
 }
 
-// ==========================================
-// ACTUALIZAR VISTA DEL ALUMNO PARA LEER LA NUEVA RUTINA
-// ==========================================
-// Sobrescribimos renderExercises para que lea del nuevo sistema
-// ==========================================
-// RENDERIZAR LISTA DE EJERCICIOS
-// ==========================================
+// =========================================================
+// SISTEMA DE PERSISTENCIA DIARIA DE EJERCICIOS (ANTI-REINICIO)
+// =========================================================
+
+// 1. Obtener fecha local exacta (Perú) en formato YYYY-MM-DD
+function getTodayLocalString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 2. Generar llave única por Atleta + Fecha de Hoy + Día de Rutina
+function getWorkoutStorageKey(day) {
+    const studentId = currentStudentId || localStorage.getItem('omarfit_logged_id') || 'guest';
+    const today = getTodayLocalString();
+    const activeDay = day || currentDay || 'lun';
+    return `omarfit_workout_${studentId}_${today}_${activeDay}`;
+}
+
+// 3. Guardar en el celular cada vez que el alumno marca/desmarca
+function saveExerciseProgressLocal(day, exerciseKey, isCompleted) {
+    const storageKey = getWorkoutStorageKey(day);
+    let savedProgress = {};
+    try {
+        savedProgress = JSON.parse(localStorage.getItem(storageKey)) || {};
+    } catch (e) {
+        savedProgress = {};
+    }
+
+    if (isCompleted) {
+        savedProgress[exerciseKey] = true;
+    } else {
+        delete savedProgress[exerciseKey];
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(savedProgress));
+}
+
+// 4. Sincronizar los ejercicios con la memoria del teléfono antes de dibujar
+function syncExercisesWithLocalStorage(day, exercises) {
+    if (!Array.isArray(exercises)) return;
+    
+    const mapaDias = ['domingo', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
+    const diaRealHoy = mapaDias[new Date().getDay()];
+
+    // Si está viendo un día distinto al de hoy, se muestran desmarcados
+    if (day !== diaRealHoy) {
+        exercises.forEach(ex => ex.completed = false);
+        return;
+    }
+
+    const storageKey = getWorkoutStorageKey(day);
+    let savedProgress = {};
+    try {
+        savedProgress = JSON.parse(localStorage.getItem(storageKey)) || {};
+    } catch (e) {
+        savedProgress = {};
+    }
+
+    exercises.forEach((ex, idx) => {
+        const key = ex.id !== undefined ? ex.id : idx;
+        ex.completed = !!savedProgress[key];
+    });
+}
+
+// 5. Limpiar automáticamente días pasados para no llenar la memoria
+function cleanOldWorkoutStorage() {
+    const today = getTodayLocalString();
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('omarfit_workout_') && !key.includes(today)) {
+            localStorage.removeItem(key);
+        }
+    });
+}
+
+// =========================================================
+// RENDERIZAR Y MARCAR EJERCICIOS (CONECTADO A MEMORIA LOCAL)
+// =========================================================
 function renderExercises(day) {
     const listContainer = document.getElementById('exercise-list');
     if (!listContainer) return;
+
+    // Limpieza ligera de días anteriores
+    cleanOldWorkoutStorage();
 
     const routine = getStudentRoutine();
     let exercises = [];
     
     // Soporta rutinas de todos los formatos
-    if (routine[day]) {
+    if (routine && routine[day]) {
         exercises = routine[day].exercises || (Array.isArray(routine[day]) ? routine[day] : []);
     }
     
@@ -2463,18 +2581,22 @@ function renderExercises(day) {
     const dayTag = document.getElementById('workout-day-tag');
     const btnText = document.getElementById('btn-start-workout-text');
     
-    if (routine[day]) {
+    if (routine && routine[day]) {
         const tagText = routine[day].tag || "RUTINA DEL DÍA";
-        if(dayTag) dayTag.innerText = tagText;
-        if(btnText) btnText.innerText = `INICIAR ENTRENAMIENTO DE HOY - ${tagText}`;
+        if (dayTag) dayTag.innerText = tagText;
+        if (btnText) btnText.innerText = `INICIAR ENTRENAMIENTO DE HOY - ${tagText}`;
     }
 
     if (!Array.isArray(exercises)) return;
+
+    // 🔥 SINCRONIZAMOS CON EL LOCALSTORAGE ANTES DE DIBUJAR
+    syncExercisesWithLocalStorage(day, exercises);
 
     const currentActiveIndex = exercises.findIndex(e => !e.completed);
 
     exercises.forEach((ex, index) => {
         const isActive = (index === currentActiveIndex);
+        const exKey = ex.id !== undefined ? ex.id : index;
         const card = document.createElement('div');
         
         let cardStyles = '';
@@ -2485,7 +2607,7 @@ function renderExercises(day) {
         card.className = `p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group relative overflow-hidden ${cardStyles}`;
         card.innerHTML = `
             ${isActive ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-red"></div>' : ''}
-            <div class="flex items-center space-x-4 flex-1 cursor-pointer pl-1" onclick="toggleExercise(${ex.id})">
+            <div class="flex items-center space-x-4 flex-1 cursor-pointer pl-1" onclick="toggleExercise(${exKey})">
                 <div class="${ex.completed ? 'w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center group-hover:border-brand-red transition-colors'} shrink-0">
                     ${ex.completed ? '<i class="fa-solid fa-check text-[10px] font-black"></i>' : ''}
                 </div>
@@ -2508,11 +2630,7 @@ function renderExercises(day) {
     updateWorkoutProgress();
 }
 
-// Sobrescribimos el Candado Estricto de los check para que lea la rutina dinámica
-// ==========================================
-// MARCAR EJERCICIOS CON CANDADO DE DÍA
-// ==========================================
-function toggleExercise(id) {
+function toggleExercise(idOrIndex) {
     const mapaDias = ['domingo', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
     const diaRealHoy = mapaDias[new Date().getDay()];
 
@@ -2523,21 +2641,31 @@ function toggleExercise(id) {
 
     const routine = getStudentRoutine();
     let exercises = [];
-    if (routine[currentDay]) {
+    if (routine && routine[currentDay]) {
         exercises = routine[currentDay].exercises || (Array.isArray(routine[currentDay]) ? routine[currentDay] : []);
     }
     
     if (!Array.isArray(exercises)) return;
 
-    const ex = exercises.find(item => item.id === id);
+    // Primero aseguramos que el arreglo tenga el estado actual del localStorage
+    syncExercisesWithLocalStorage(currentDay, exercises);
+
+    // Buscamos por ID o por índice
+    let ex = exercises.find((item, idx) => (item.id !== undefined ? item.id === idOrIndex : idx === idOrIndex));
+    
     if (ex) {
         ex.completed = !ex.completed;
+        
+        // 🔥 GUARDAMOS INSTANTÁNEAMENTE EN EL TELÉFONO DEL ATLETA
+        saveExerciseProgressLocal(currentDay, idOrIndex, ex.completed);
+
         renderExercises(currentDay);
         
-        if(ex.completed) startRestTimer(90);
+        if (ex.completed) startRestTimer(90);
         else closeRestTimer();
     }
 }
+
 
 // ==========================================
 // MÓDULO DE PROGRESOS Y GRÁFICAS (CHART.JS)
@@ -2634,9 +2762,9 @@ async function saveProgressRecord() {
 
 
 // ==========================================
-// 3. Dibujar Gráfica de Barras Brillantes (ULTIMA REVISIÓN - 100% BLINDADA)
+// 3. Dibujar Gráfica de Barras Brillantes + Tachito de Basura del Coach (ULTIMA REVISIÓN)
 // ==========================================
-function renderProgressChart(historial) {
+function renderProgressChart(historial, studentId) {
     try {
         const canvas = document.getElementById('progressChart');
         const emptyState = document.getElementById('chart-empty-state');
@@ -2644,7 +2772,7 @@ function renderProgressChart(historial) {
         
         if (!canvas || !emptyState || !chartContainer) return;
 
-        // 1. Extraer y limpiar los datos
+        // 1. Extraer y limpiar los datos y sus índices reales del array original
         let rawData = [];
         if (typeof historial === 'string') {
             try { rawData = JSON.parse(historial); } catch(e) { rawData = []; }
@@ -2652,10 +2780,13 @@ function renderProgressChart(historial) {
             rawData = historial;
         }
         
-        // Aplanamos la data y nos aseguramos de que sean objetos reales
-        const historialPlano = rawData.flat(Infinity).filter(item => 
-            typeof item === 'object' && item !== null && !Array.isArray(item)
-        );
+        // Mapeamos cada objeto conservando su índice exacto original (fundamental para borrar con Supabase)
+        const historialPlano = rawData.flat(Infinity).map((item, originalIndex) => {
+            if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+                return { ...item, _originalIndex: originalIndex };
+            }
+            return null;
+        }).filter(item => item !== null);
         
         // 2. Filtrar solo los registros que tengan al menos 1 peso válido
         const historialValido = historialPlano.filter(h => {
@@ -2666,27 +2797,51 @@ function renderProgressChart(historial) {
                    (parseFloat(h.ext) > 0);
         });
 
-        // 3. MANEJO ESTRICTO DE PANTALLAS
+        // 3. MANEJO ESTRICTO DE PANTALLAS Y EL CONTENEDOR DE ACCIONES DEL COACH
+        let coachActionsContainer = document.getElementById('coach-chart-actions');
+        // Si no existe el contenedor de botones de borrado debajo de la gráfica, lo creamos dinámicamente
+        if (!coachActionsContainer) {
+            coachActionsContainer = document.createElement('div');
+            coachActionsContainer.id = 'coach-chart-actions';
+            coachActionsContainer.className = 'flex flex-wrap gap-2 justify-center mt-4';
+            chartContainer.parentNode.appendChild(coachActionsContainer);
+        }
+        coachActionsContainer.innerHTML = '';
+
         if (historialValido.length === 0) {
             chartContainer.style.display = 'none';
             chartContainer.classList.add('hidden');
             emptyState.style.display = 'flex';
             emptyState.classList.remove('hidden');
+            coachActionsContainer.style.display = 'none';
             return; 
         } else {
             emptyState.style.display = 'none';
             emptyState.classList.add('hidden');
             chartContainer.style.display = 'block';
             chartContainer.classList.remove('hidden');
+            coachActionsContainer.style.display = 'flex';
         }
 
-        // 4. Retraso mágico de 100ms para evitar colapso de Chart.js
+        // 4. Si el usuario actual es el Coach, renderizamos los tachitos de basura interactivos para cada registro visible
+        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && studentId) {
+            const registrosRecientesParaBotones = historialValido.slice(-2);
+            registrosRecientesParaBotones.forEach(reg => {
+                const btnDelete = document.createElement('button');
+                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border border-red-500/20 flex items-center gap-1.5';
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> Borrar ${reg.mes || 'Mes'}`;
+                btnDelete.onclick = () => confirmDeleteProgress(studentId, reg._originalIndex);
+                coachActionsContainer.appendChild(btnDelete);
+            });
+        }
+
+        // 5. Retraso mágico de 100ms para evitar colapso de Chart.js
         setTimeout(() => {
             if (typeof progressChartInstance !== 'undefined' && progressChartInstance !== null) {
                 progressChartInstance.destroy();
             }
 
-            // 5. CORTAMOS A MÁXIMO 2 REGISTROS 
+            // Cortamos a máximo 2 registros para la gráfica
             const registrosRecientes = historialValido.slice(-2);
             const ctx = canvas.getContext('2d');
             const labels = registrosRecientes.map(h => h.mes || 'Mes');
@@ -2743,6 +2898,57 @@ function renderProgressChart(historial) {
     }
 }
 
+// =========================================================
+// CONFIRMAR Y ELIMINAR REGISTRO DE PROGRESO (SOLO COACH)
+// =========================================================
+async function confirmDeleteProgress(studentId, progressIndex) {
+    if (currentUserRole !== 'coach') {
+        showToast("Acción no autorizada", "fa-triangle-exclamation");
+        return;
+    }
+
+    const confirmDelete = confirm("¿Estás seguro de eliminar este registro de progreso erróneo?");
+    if (!confirmDelete) return;
+
+    try {
+        const student = studentsList.find(s => s.id === studentId);
+        if (!student) throw new Error("Atleta no encontrado");
+
+        let measures = [];
+        if (typeof student.measures === 'string') {
+            measures = JSON.parse(student.measures || '[]');
+        } else if (Array.isArray(student.measures)) {
+            measures = [...student.measures];
+        }
+
+        // 🔪 Eliminamos quirúrgicamente usando el índice real exacto (_originalIndex)
+        measures.splice(progressIndex, 1);
+
+        // Actualizamos en Supabase la columna 'measures'
+        const { error } = await supabaseClient
+            .from('students')
+            .update({ measures: measures })
+            .eq('id', studentId);
+
+        if (error) throw error;
+
+        student.measures = measures;
+
+        // Refrescamos la vista del alumno y la tabla del coach
+        if (typeof syncStudentView === 'function') {
+            syncStudentView(studentId);
+        }
+        if (typeof renderTrainerTable === 'function') {
+            renderTrainerTable();
+        }
+
+        showToast("Registro eliminado correctamente", "fa-trash-can");
+
+    } catch (err) {
+        console.error("Error al eliminar el progreso:", err);
+        showToast("Error al eliminar el registro", "fa-circle-xmark");
+    }
+}
 
 // ==========================================
 // MÓDULO QR (ESCANÉO Y GENERACIÓN)
