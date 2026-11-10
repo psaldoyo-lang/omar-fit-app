@@ -2769,6 +2769,7 @@ function renderProgressChart(historial, studentId) {
         const canvas = document.getElementById('progressChart');
         const emptyState = document.getElementById('chart-empty-state');
         const chartContainer = document.getElementById('chart-container');
+        const coachActionsContainer = document.getElementById('coach-chart-actions'); // 👈 Contenedor fijo
         
         if (!canvas || !emptyState || !chartContainer) return;
 
@@ -2780,7 +2781,6 @@ function renderProgressChart(historial, studentId) {
             rawData = historial;
         }
         
-        // Mapeamos cada objeto conservando su índice exacto original (fundamental para borrar con Supabase)
         const historialPlano = rawData.flat(Infinity).map((item, originalIndex) => {
             if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
                 return { ...item, _originalIndex: originalIndex };
@@ -2788,7 +2788,7 @@ function renderProgressChart(historial, studentId) {
             return null;
         }).filter(item => item !== null);
         
-        // 2. Filtrar solo los registros que tengan al menos 1 peso válido
+        // 2. Filtrar registros válidos
         const historialValido = historialPlano.filter(h => {
             return (parseFloat(h.sentadilla) > 0) || 
                    (parseFloat(h.muerto) > 0) || 
@@ -2797,51 +2797,41 @@ function renderProgressChart(historial, studentId) {
                    (parseFloat(h.ext) > 0);
         });
 
-        // 3. MANEJO ESTRICTO DE PANTALLAS Y EL CONTENEDOR DE ACCIONES DEL COACH
-        let coachActionsContainer = document.getElementById('coach-chart-actions');
-        // Si no existe el contenedor de botones de borrado debajo de la gráfica, lo creamos dinámicamente
-        if (!coachActionsContainer) {
-            coachActionsContainer = document.createElement('div');
-            coachActionsContainer.id = 'coach-chart-actions';
-            coachActionsContainer.className = 'flex flex-wrap gap-2 justify-center mt-4';
-            chartContainer.parentNode.appendChild(coachActionsContainer);
-        }
-        coachActionsContainer.innerHTML = '';
+        // Limpiamos los botones anteriores del coach
+        if (coachActionsContainer) coachActionsContainer.innerHTML = '';
 
         if (historialValido.length === 0) {
             chartContainer.style.display = 'none';
             chartContainer.classList.add('hidden');
             emptyState.style.display = 'flex';
             emptyState.classList.remove('hidden');
-            coachActionsContainer.style.display = 'none';
             return; 
         } else {
             emptyState.style.display = 'none';
             emptyState.classList.add('hidden');
             chartContainer.style.display = 'block';
             chartContainer.classList.remove('hidden');
-            coachActionsContainer.style.display = 'flex';
         }
 
-        // 4. Si el usuario actual es el Coach, renderizamos los tachitos de basura interactivos para cada registro visible
-        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && studentId) {
-            const registrosRecientesParaBotones = historialValido.slice(-2);
-            registrosRecientesParaBotones.forEach(reg => {
+        // 3. 🛡️ SI ES EL COACH, RENDERIZAMOS LOS TACHITOS EN LA CABECERA
+        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && coachActionsContainer && studentId) {
+            const registrosRecientes = historialValido.slice(-2);
+            registrosRecientes.forEach(reg => {
                 const btnDelete = document.createElement('button');
-                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border border-red-500/20 flex items-center gap-1.5';
-                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> Borrar ${reg.mes || 'Mes'}`;
+                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 border border-red-500/20 flex items-center gap-1 shadow-sm';
+                btnDelete.title = `Eliminar registro de ${reg.mes || 'Mes'}`;
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can text-xs"></i> <span class="hidden sm:inline">${reg.mes || 'Borrar'}</span>`;
                 btnDelete.onclick = () => confirmDeleteProgress(studentId, reg._originalIndex);
                 coachActionsContainer.appendChild(btnDelete);
             });
         }
 
-        // 5. Retraso mágico de 100ms para evitar colapso de Chart.js
+        // 4. Retraso para Chart.js
         setTimeout(() => {
             if (typeof progressChartInstance !== 'undefined' && progressChartInstance !== null) {
                 progressChartInstance.destroy();
             }
 
-            // Cortamos a máximo 2 registros para la gráfica
             const registrosRecientes = historialValido.slice(-2);
             const ctx = canvas.getContext('2d');
             const labels = registrosRecientes.map(h => h.mes || 'Mes');
