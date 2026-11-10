@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>OMAR FIT - Personal Trainer App</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,10 +21,9 @@
     <meta name="apple-mobile-web-app-title" content="Omar Fit">
     <link rel="apple-touch-icon" href="assets/logo.jpeg">
 
-
     <!-- Configuración Tailwind personalizada -->
     <script>
-          tailwind.config = {
+        tailwind.config = {
             theme: {
                 extend: {
                     colors: {
@@ -48,7 +47,7 @@
         }
     </script>
 
-    <!-- Enlace a tu archivo CSS externo -->
+    <!-- Enlace a archivo CSS externo -->
     <link rel="stylesheet" href="css/styles.css">
 
     <!-- Librerías Externas (QR y Gráficas) -->
@@ -150,13 +149,12 @@
                 </div>
             </div>
             <div id="header-controls" class="flex items-center space-x-2">
-                <!-- ⚙️ Engranaje exclusivo del Coach (Oculto por defecto con 'hidden') -->
                 <button onclick="openCoachSettingsModal()" id="btn-coach-gear" class="hidden w-9 h-9 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-red transition-all" title="Ajustes de Administrador">
                      <i class="fa-solid fa-gear text-xs"></i>
                 </button>
 
                 <div id="coach-toggles" class="hidden bg-[#121215] p-1 rounded-xl border border-zinc-800 flex items-center">
-                    <button id="btn-view-student" onclick="switchView('student')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-brand-muted hover:text-white">Vista Alumno</label>
+                    <button id="btn-view-student" onclick="switchView('student')" class="px-3 py-1.5 text-xs font-bold rounded-lg text-brand-muted hover:text-white">Vista Alumno</button>
                     <button id="btn-view-trainer" onclick="switchView('trainer')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-red text-white shadow-md">Mi Panel CRM</button>
                 </div>
                 <button onclick="logoutApp()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-red">
@@ -171,10 +169,9 @@
     <!-- ========================================================= -->
     <main id="app-main" class="hidden max-w-4xl mx-auto w-full px-4 py-4 flex-1">
         
-       <!-- PANEL ENTRENADOR (COACH OMAR) -->
+        <!-- PANEL ENTRENADOR (COACH OMAR) -->
         <div id="view-trainer" class="space-y-6" style="display: none;">
             
-           <!-- CABECERA DEL PANEL CRM ADAPTATIVA -->
             <div class="bg-[#101014] rounded-2xl border border-zinc-800/80 px-5 py-5 md:px-6 border-l-[4px] border-l-brand-red flex flex-col gap-4 shadow-xl">
                 <div class="space-y-1.5 w-full">
                     <div class="flex items-center space-x-3 mb-1">
@@ -185,7 +182,6 @@
                     <p class="text-xs text-brand-muted m-0">Control ejecutivo de membresías, alertas de pago por WhatsApp, planes y seguimiento individual.</p>
                 </div>
                 
-                <!-- CONTENEDOR DE BOTONES 100% RESPONSIVO -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-zinc-800/80 w-full">
                     <button onclick="exportToCSV()" class="w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl shadow border border-zinc-700 transition-all flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-file-csv text-emerald-500 text-sm"></i>
@@ -268,30 +264,28 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs whitespace-nowrap">
-                            <thead>
-                                <tr class="border-b border-zinc-800 text-zinc-500 uppercase font-extrabold tracking-widest text-[10px]">
-                                    <th class="py-4 px-3">Atleta</th>
-                                    <th class="py-4 px-3">Plan / Modalidad</th>
-                                    <th class="py-4 px-3">Vencimiento</th>
-                                    <th class="py-4 px-3">Asistencia y Deuda</th>
-                                    <th class="py-4 px-3 text-center">Acciones CRM</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trainer-students-table" class="divide-y divide-zinc-800/50 font-medium">
-                                <!-- Filas dinámicas -->
-                            </tbody>
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-zinc-500 uppercase font-extrabold tracking-widest text-[10px]">
+                                <th class="py-4 px-3">Atleta</th>
+                                <th class="py-4 px-3">Plan / Modalidad</th>
+                                <th class="py-4 px-3">Vencimiento</th>
+                                <th class="py-4 px-3">Asistencia y Deuda</th>
+                                <th class="py-4 px-3 text-center">Acciones CRM</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainer-students-table" class="divide-y divide-zinc-800/50 font-medium">
+                            <!-- Filas dinámicas -->
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
     
-    <!-- VISTA ALUMNO ESPACIADA Y LIMPIA -->
+        <!-- VISTA ALUMNO -->
         <div id="view-student" class="space-y-6 pb-24" style="display: block;">
             
-            <!-- 1. TARJETA DE PERFIL CON EFECTO IMPACTANTE Y MODERNO -->
+            <!-- 1. TARJETA DE PERFIL -->
             <div class="relative bg-gradient-to-br from-[#18181b] via-[#121215] to-[#09090b] border border-zinc-800/80 hover:border-brand-red/50 p-5 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-hidden transition-all group">
-                
-                <!-- Destello ambiental de fondo (Efecto Glow Profesional) -->
                 <div class="absolute -right-16 -top-16 w-40 h-40 bg-brand-red/10 rounded-full blur-[50px] pointer-events-none group-hover:bg-brand-red/20 transition-all duration-700"></div>
                 <div class="absolute -left-16 -bottom-16 w-40 h-40 bg-brand-red/5 rounded-full blur-[50px] pointer-events-none"></div>
 
@@ -320,7 +314,6 @@
                         </div>
                     </div>
 
-                    <!-- Mini barra de estadísticas con diseño translúcido -->
                     <div class="grid grid-cols-3 gap-2.5 pt-3 border-t border-zinc-800/80 text-center">
                         <div class="bg-black/40 backdrop-blur-sm py-2 px-1 rounded-xl border border-zinc-800/60 shadow-inner">
                             <span class="text-[9px] text-zinc-400 font-bold uppercase block tracking-wider">Racha</span>
@@ -338,37 +331,33 @@
                 </div>
             </div>
 
-<!-- 3. BOTÓN PRINCIPAL DE INICIO DE ENTRENAMIENTO -->
-    <button onclick="document.getElementById('section-workout').scrollIntoView({behavior: 'smooth'})" id="btn-start-workout" class="w-full bg-gradient-to-r from-brand-red via-brand-redDark to-brand-red hover:brightness-110 text-white font-black py-4 px-6 rounded-2xl transition-all duration-300 shadow-[0_0_25px_rgba(255,30,39,0.4)] flex items-center justify-center space-x-3 cursor-pointer transform active:scale-98 border border-red-500/30">
-        <div class="w-8 h-8 rounded-xl bg-black/30 flex items-center justify-center text-white">
-            <i class="fa-solid fa-trophy text-sm"></i>
-        </div>
-        <span class="text-sm md:text-base tracking-widest uppercase font-display">INICIAR ENTRENAMIENTO DE HOY</span>
-    </button>
+            <!-- 2. BOTÓN INICIO DE ENTRENAMIENTO -->
+            <button onclick="document.getElementById('section-workout').scrollIntoView({behavior: 'smooth'})" id="btn-start-workout" class="w-full bg-gradient-to-r from-brand-red via-brand-redDark to-brand-red hover:brightness-110 text-white font-black py-4 px-6 rounded-2xl transition-all duration-300 shadow-[0_0_25px_rgba(255,30,39,0.4)] flex items-center justify-center space-x-3 cursor-pointer transform active:scale-98 border border-red-500/30">
+                <div class="w-8 h-8 rounded-xl bg-black/30 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-trophy text-sm"></i>
+                </div>
+                <span class="text-sm md:text-base tracking-widest uppercase font-display">INICIAR ENTRENAMIENTO DE HOY</span>
+            </button>
 
-   <!-- ========================================================= -->
-    <!-- 2. BANNER / FOTO PRINCIPAL MOTIVACIONAL (LARGO Y PRÉMIUM) -->
-    <!-- ========================================================= -->
-    <div class="relative rounded-3xl overflow-hidden border-2 border-brand-red/50 shadow-[0_0_40px_rgba(0,0,0,0.9)] bg-zinc-900 group aspect-[1/1] sm:aspect-[16/9] md:aspect-[2.5/1] flex items-end justify-center">
-        <img id="mot-banner-img" src="assets/foto principal.jpg" alt="Omar Fit" class="absolute inset-0 w-full h-full object-cover object-center opacity-70 group-hover:scale-105 transition-transform duration-700 cursor-pointer" onclick="openMediaModal('image', 'assets/porras1.jpg', 'Familia Fierrera Omar Fit 🔥')">
-        
-        <!-- Degradado sutil solo abajo para que resalte el texto sin tapar la foto -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+            <!-- 3. BANNER PRINCIPAL -->
+            <div class="relative rounded-3xl overflow-hidden border-2 border-brand-red/50 shadow-[0_0_40px_rgba(0,0,0,0.9)] bg-zinc-900 group aspect-[1/1] sm:aspect-[16/9] md:aspect-[2.5/1] flex items-end justify-center">
+                <img id="mot-banner-img" src="assets/foto principal.jpg" alt="Omar Fit" class="absolute inset-0 w-full h-full object-cover object-center opacity-70 group-hover:scale-105 transition-transform duration-700 cursor-pointer" onclick="openMediaModal('image', 'assets/porras1.jpg', 'Familia Fierrera Omar Fit 🔥')">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
-        <div class="relative z-10 text-center p-5 md:p-8 w-full">
-            <span class="bg-brand-red text-white text-[9px] md:text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(255,30,39,0.6)] inline-block mb-2.5 border border-red-400/30">
-                <i class="fa-solid fa-bolt mr-1"></i>FAMILIA FIERRERA OMAR FIT
-            </span>
-            <h3 class="text-sm sm:text-base md:text-2xl font-black text-white italic tracking-wide uppercase drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] font-display mb-1.5 px-2">
-                "Entrena sin excusas, para que el dolor de hoy sea el resultado del mañana"
-            </h3>
-            <p class="text-[9px] sm:text-[10px] md:text-xs text-zinc-200 font-semibold tracking-wider uppercase drop-shadow">
-                Cada repetición cuenta para tus objetivos. ¡A romperla! 🔥
-            </p>
-        </div>
-    </div>
+                <div class="relative z-10 text-center p-5 md:p-8 w-full">
+                    <span class="bg-brand-red text-white text-[9px] md:text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(255,30,39,0.6)] inline-block mb-2.5 border border-red-400/30">
+                        <i class="fa-solid fa-bolt mr-1"></i>FAMILIA FIERRERA OMAR FIT
+                    </span>
+                    <h3 class="text-sm sm:text-base md:text-2xl font-black text-white italic tracking-wide uppercase drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] font-display mb-1.5 px-2">
+                        "Entrena sin excusas, para que el dolor de hoy sea el resultado del mañana"
+                    </h3>
+                    <p class="text-[9px] sm:text-[10px] md:text-xs text-zinc-200 font-semibold tracking-wider uppercase drop-shadow">
+                        Cada repetición cuenta para tus objetivos. ¡A romperla! 🔥
+                    </p>
+                </div>
+            </div>
 
-            <!-- 5. GALERÍA MULTIMEDIA -->
+            <!-- 4. GALERÍA MULTIMEDIA -->
             <section class="bg-brand-card rounded-3xl border border-brand-border p-5 md:p-6 space-y-4 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
@@ -388,26 +377,22 @@
                             <i class="fa-solid fa-video text-[10px] text-brand-red"></i>
                             <span>Videos</span>
                         </button>
-
-                        </div>
+                    </div>
                 </div>
 
-                <!-- 📸 BOTONES PARA CARGAR NUEVAS FOTOS Y VIDEOS -->
-            <div class="flex flex-wrap gap-2.5 my-3">
-                <!-- Botón Subir Foto -->
-                <label class="flex-1 min-w-[130px] py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-brand-red text-white font-bold text-xs rounded-xl text-center cursor-pointer transition-all flex items-center justify-center space-x-2 shadow-md group">
-                    <i class="fa-solid fa-camera text-brand-red group-hover:scale-110 transition-transform"></i>
-                    <span>Subir Nueva Foto</span>
-                    <input type="file" id="input-upload-photo-gallery" accept="image/*" class="hidden" onchange="handleNewMediaUpload(event, 'image')">
-                </label>
+                <div class="flex flex-wrap gap-2.5 my-3">
+                    <label class="flex-1 min-w-[130px] py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-brand-red text-white font-bold text-xs rounded-xl text-center cursor-pointer transition-all flex items-center justify-center space-x-2 shadow-md group">
+                        <i class="fa-solid fa-camera text-brand-red group-hover:scale-110 transition-transform"></i>
+                        <span>Subir Nueva Foto</span>
+                        <input type="file" id="input-upload-photo-gallery" accept="image/*" class="hidden" onchange="handleNewMediaUpload(event, 'image')">
+                    </label>
 
-                <!-- Botón Subir Video -->
-                <label class="flex-1 min-w-[130px] py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-brand-red text-white font-bold text-xs rounded-xl text-center cursor-pointer transition-all flex items-center justify-center space-x-2 shadow-md group">
-                    <i class="fa-solid fa-video text-brand-red group-hover:scale-110 transition-transform"></i>
-                    <span>Subir Nuevo Video</span>
-                    <input type="file" id="input-upload-video-gallery" accept="video/*" class="hidden" onchange="handleNewMediaUpload(event, 'video')">
-                </label>
-            </div>
+                    <label class="flex-1 min-w-[130px] py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-brand-red text-white font-bold text-xs rounded-xl text-center cursor-pointer transition-all flex items-center justify-center space-x-2 shadow-md group">
+                        <i class="fa-solid fa-video text-brand-red group-hover:scale-110 transition-transform"></i>
+                        <span>Subir Nuevo Video</span>
+                        <input type="file" id="input-upload-video-gallery" accept="video/*" class="hidden" onchange="handleNewMediaUpload(event, 'video')">
+                    </label>
+                </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="relative group rounded-2xl overflow-hidden border border-brand-border bg-zinc-900 aspect-video cursor-pointer shadow-lg" onclick="openMediaModal('image', 'assets/porras2.jpg', 'Familia Fierrera Omar Fit 🔥')">
@@ -444,7 +429,7 @@
                 </div>
             </section>
 
-            <!-- 6. RUTINA DE HOY -->
+            <!-- 5. RUTINA DE HOY -->
             <section id="section-workout" class="bg-brand-card rounded-3xl border border-brand-border p-5 md:p-6 shadow-xl space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
                     <div>
@@ -480,18 +465,18 @@
                 </button>
             </section>
 
-            <!-- 7. PLAN NUTRICIONAL -->
+            <!-- 6. PLAN NUTRICIONAL -->
             <section id="section-nutrition" class="bg-brand-card rounded-3xl border border-brand-border p-5 md:p-6 shadow-xl">
             </section>
 
-            <!-- 8. GRÁFICA DE FUERZA -->
-          <div class="flex justify-between items-center mb-4">
-    <h3 class="text-white font-black text-base flex items-center gap-2">
-        <i class="fa-solid fa-fire text-brand-red"></i> EVOLUCIÓN DE FUERZA
-    </h3>
-    <!-- 🗑️ CONTENEDOR FIJO PARA LOS TACHITOS DEL COACH -->
-    <div id="coach-chart-actions" class="flex items-center gap-2"></div>
-        </div>
+            <!-- 7. GRÁFICA DE FUERZA (ESTRUCTURA BLINDADA Y CONTENEDOR RELATIVO) -->
+            <section class="relative bg-brand-card rounded-3xl border border-brand-border p-5 md:p-6 shadow-xl overflow-hidden min-h-[340px] flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4 z-30">
+                    <h3 class="text-white font-black text-base flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-brand-red"></i> EVOLUCIÓN DE FUERZA
+                    </h3>
+                    <div id="coach-chart-actions" class="flex items-center gap-2"></div>
+                </div>
                 
                 <div id="chart-empty-state" class="absolute top-16 left-5 right-5 bottom-5 z-20 flex flex-col items-center justify-center rounded-2xl border border-zinc-800/50 bg-[#121215]/80 backdrop-blur-sm">
                     <div class="w-14 h-14 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-600 text-xl mb-3 shadow-inner">
@@ -504,9 +489,9 @@
                 <div id="chart-container" class="absolute top-16 left-5 right-5 bottom-5 z-10 hidden">
                     <canvas id="progressChart"></canvas>
                 </div>
-            </div>
+            </section>
 
-            <!-- 9. AVANCES Y MEDIDAS -->
+            <!-- 8. AVANCES Y MEDIDAS (ÚNICO BLOQUE EN SU LUGAR) -->
             <section id="section-progress" class="bg-brand-card rounded-3xl border border-brand-border p-5 md:p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between mb-2">
                     <div>
@@ -518,7 +503,7 @@
                     </button>
                 </div>
 
-               <div class="overflow-x-auto">
+                <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
                         <thead>
                             <tr class="border-b border-zinc-800 text-zinc-500 uppercase font-extrabold tracking-wider text-xs">
@@ -532,19 +517,7 @@
                             </tr>
                         </thead>                        
                         <tbody id="measures-history-body" class="divide-y divide-zinc-800/60 font-medium">
-                            <tr>
-                                <td class="py-3 px-3 font-bold text-white">12/10/2026</td>
-                                <td class="py-3 px-3 text-brand-red font-bold">78.5 kg</td>
-                                <td class="py-3 px-3 text-white">58 cm</td>
-                                <td class="py-3 px-3 text-white">82 cm</td>
-                                <td class="py-3 px-3 text-white">39 cm</td>
-                                <td id="default-note-cell" class="py-3 px-3 text-emerald-400 font-bold">Excelente ganancia!</td>
-                                <td class="py-3 px-3 text-center">
-                                    <button onclick="this.closest('tr').remove(); showToast('Registro eliminado.', 'fa-trash-can');" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-brand-red text-white rounded-xl font-bold text-[10px]">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            <!-- Filas dinámicas generadas desde JS -->
                         </tbody>
                     </table>
                 </div>
@@ -557,38 +530,27 @@
                 </a>
             </div>
         </div>
-           
     </main>
 
-<!-- ========================================================= -->
-    <!-- 4. BARRA INFERIOR FLOTANTE MÓVIL (FORZADA A HORIZONTAL) -->
+    <!-- ========================================================= -->
+    <!-- 4. BARRA INFERIOR FLOTANTE MÓVIL -->
     <!-- ========================================================= -->
     <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 hidden shadow-[0_-5px_20px_rgba(0,0,0,0.8)]" style="display: none; flex-direction: row !important; align-items: center !important; justify-content: space-around !important;">
-        
-        <!-- 1. Inicio -->
         <a href="#app-main" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
             <i class="fa-solid fa-house text-sm mb-1"></i>
             <span class="text-[8px] font-bold uppercase tracking-wider">Inicio</span>
         </a>
-
-        <!-- 2. Rutina -->
         <a href="#section-workout" onclick="document.getElementById('section-workout').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
             <i class="fa-solid fa-dumbbell text-sm mb-1"></i>
             <span class="text-[8px] font-bold uppercase tracking-wider">Rutina</span>
         </a>
-
-        <!-- 3. Cronómetro Central -->
         <button onclick="startRestTimer(90)" class="w-12 h-12 bg-brand-red text-white rounded-full flex items-center justify-center -mt-5 border-4 border-[#050506] shadow-[0_0_20px_rgba(255,30,39,0.6)] cursor-pointer hover:scale-105 transition-transform" title="Cronómetro de Descanso">
             <i class="fa-solid fa-stopwatch text-base"></i>
         </button>
-
-        <!-- 4. Dieta -->
         <a href="#section-nutrition" onclick="document.getElementById('section-nutrition').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
             <i class="fa-solid fa-utensils text-sm mb-1"></i>
             <span class="text-[8px] font-bold uppercase tracking-wider">Dieta</span>
         </a>
-
-        <!-- 5. Medidas -->
         <a href="#section-progress" onclick="document.getElementById('section-progress').scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center text-zinc-400 hover:text-brand-red transition-colors">
             <i class="fa-solid fa-chart-line text-sm mb-1"></i>
             <span class="text-[8px] font-bold uppercase tracking-wider">Medidas</span>
@@ -624,7 +586,7 @@
         </div>
     </div>
     
-   <!-- MODAL: VER FOTO EN PANTALLA COMPLETA (CON ZOOM HABILITADO) -->
+    <!-- MODAL: VER FOTO EN PANTALLA COMPLETA -->
     <div id="modal-image-fullscreen" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 hidden overflow-auto">
         <button onclick="closeImageModal()" class="absolute top-4 right-4 w-12 h-12 bg-zinc-800 hover:bg-brand-red text-white text-xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
@@ -695,7 +657,7 @@
         </div>
     </div>
 
-  <!-- MODAL: REGISTRAR MEDIDAS -->
+    <!-- MODAL: REGISTRAR MEDIDAS -->
     <div id="modal-measure" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-brand-card border border-brand-border rounded-2xl max-w-md w-full p-5 space-y-4 glow-red">
             <div class="flex justify-between items-center border-b border-brand-border pb-3">
@@ -962,16 +924,13 @@
         </div>
     </div>
 
-   <!-- ========================================================= -->
     <!-- MODAL: REPRODUCTOR DE VIDEO EN PANTALLA COMPLETA -->
-    <!-- ========================================================= -->
     <div id="modal-video-player" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 hidden">
         <button onclick="closeVideoModal()" class="absolute top-4 right-4 w-12 h-12 bg-zinc-800 hover:bg-brand-red text-white text-xl font-bold rounded-full flex items-center justify-center transition-all z-[999] shadow-2xl border-2 border-brand-red cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
         <div class="relative w-full h-full flex flex-col items-center justify-center p-2">
             <h3 id="video-modal-title" class="text-white font-bold text-sm mb-3 uppercase tracking-wide">Entrenamiento</h3>
-            <!-- Añadimos playsinline, controls y preload -->
             <video id="video-modal-target" controls playsinline preload="auto" class="max-w-full max-h-[80vh] rounded-xl object-contain shadow-2xl border border-brand-red/40"></video>
         </div>
     </div>

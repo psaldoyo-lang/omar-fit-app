@@ -2781,6 +2781,12 @@ function renderProgressChart(historial, studentId) {
         
         if (!canvas || !emptyState || !chartContainer) return;
 
+        // 🌟 Forzamos altura visible para que Chart.js pinte las barras sin fallar
+        chartContainer.style.width = '100%';
+        chartContainer.style.height = '260px';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+
         // 1. Extraer y limpiar los datos de 'progresos' y sus índices reales
         let rawData = [];
         if (typeof historial === 'string') {
