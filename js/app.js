@@ -2778,14 +2778,14 @@ function renderProgressChart(historial, studentId) {
         const canvas = document.getElementById('progressChart');
         const emptyState = document.getElementById('chart-empty-state');
         const chartContainer = document.getElementById('chart-container');
+        const coachActions = document.getElementById('coach-chart-actions');
         
-        if (!canvas || !emptyState || !chartContainer) return;
+        // Limpiamos cualquier lista anterior que se haya creado en el fondo
+        const oldList = document.getElementById('coach-delete-records-list');
+        if (oldList) oldList.remove();
+        if (coachActions) coachActions.innerHTML = '';
 
-        // 🌟 Forzamos altura visible para que Chart.js pinte las barras sin fallar
-        chartContainer.style.width = '100%';
-        chartContainer.style.height = '260px';
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
+        if (!canvas || !emptyState || !chartContainer) return;
 
         // 1. Extraer y limpiar los datos de 'progresos' y sus índices reales
         let rawData = [];
@@ -2811,59 +2811,33 @@ function renderProgressChart(historial, studentId) {
                    (parseFloat(h.ext) > 0);
         });
 
-        // 3. GESTIÓN DEL CONTENEDOR DE BORRADO PARA EL COACH (DEBAJO DE LA GRÁFICA)
-        let coachDeleteList = document.getElementById('coach-delete-records-list');
-        if (!coachDeleteList) {
-            coachDeleteList = document.createElement('div');
-            coachDeleteList.id = 'coach-delete-records-list';
-            coachDeleteList.className = 'mt-4 space-y-2';
-            chartContainer.parentNode.appendChild(coachDeleteList);
-        }
-        coachDeleteList.innerHTML = '';
-
         if (historialValido.length === 0) {
             chartContainer.style.display = 'none';
             chartContainer.classList.add('hidden');
             emptyState.style.display = 'flex';
             emptyState.classList.remove('hidden');
-            coachDeleteList.style.display = 'none';
             return; 
         } else {
             emptyState.style.display = 'none';
             emptyState.classList.add('hidden');
             chartContainer.style.display = 'block';
             chartContainer.classList.remove('hidden');
-            coachDeleteList.style.display = 'block';
         }
 
-        // 4. SI ES EL COACH, RENDERIZAMOS LA LISTA DE GESTIÓN CON TACHITO
-        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && studentId) {
-            const titleHtml = document.createElement('div');
-            titleHtml.className = 'text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center justify-between px-1';
-            titleHtml.innerHTML = `<span>Gestión de Récords (Coach)</span><span>Acciones</span>`;
-            coachDeleteList.appendChild(titleHtml);
-
-            historialValido.forEach((reg) => {
-                const rowItem = document.createElement('div');
-                rowItem.className = 'bg-[#15151a] border border-zinc-800 p-3 rounded-xl flex items-center justify-between text-xs text-white shadow-sm';
-                rowItem.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="font-black text-brand-red">${reg.mes || 'Mes'}</span>
-                        <span class="text-zinc-400">Sq: ${reg.sentadilla || 0}kg | Muerto: ${reg.muerto || 0}kg | Banca: ${reg.banca || 0}kg</span>
-                    </div>
-                `;
-
+        // 3. TACHITO DEL COACH EN LA CABECERA (Sin tapar las barras)
+        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && coachActions && studentId) {
+            const registrosRecientes = historialValido.slice(-2);
+            registrosRecientes.forEach((reg) => {
                 const btnDelete = document.createElement('button');
-                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1.5 rounded-lg font-bold transition-all border border-red-500/20 flex items-center gap-1.5';
-                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can text-xs"></i> Borrar`;
+                btnDelete.className = 'bg-red-500/10 hover:bg-brand-red text-red-500 hover:text-white px-2.5 py-1.5 rounded-xl font-bold text-xs transition-all border border-red-500/30 flex items-center gap-1.5 shadow-md active:scale-95';
+                btnDelete.title = `Eliminar registro de ${reg.mes || 'Mes'}`;
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can text-xs"></i> <span>Borrar ${reg.mes || ''}</span>`;
                 btnDelete.onclick = () => confirmDeleteProgress(studentId, reg._originalIndex);
-                
-                rowItem.appendChild(btnDelete);
-                coachDeleteList.appendChild(rowItem);
+                coachActions.appendChild(btnDelete);
             });
         }
 
-        // 5. Renderizado de Chart.js
+        // 4. Renderizado de Chart.js
         setTimeout(() => {
             if (typeof progressChartInstance !== 'undefined' && progressChartInstance !== null) {
                 progressChartInstance.destroy();
