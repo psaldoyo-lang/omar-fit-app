@@ -2056,47 +2056,58 @@ function exportToCSV() {
     showToast("¡Reporte Excel exportado con éxito! 📊", "fa-file-excel");
 }
 // =========================================================
-        // FUNCIÓN PARA CERRAR SESIÓN
+        // FUNCIÓN PARA CERRAR SESIÓN (NETAMENTE BLINDADA)
         // =========================================================
         function logoutApp() {
-           
+            // 1. Borramos todo rastro de almacenamiento local para evitar perfiles cruzados
             localStorage.removeItem('omarfit_logged_id');
             localStorage.removeItem('omarfit_role');
-            // 1. Cerramos cualquier ventana modal que esté abierta por si acaso
-            if (typeof closeStudentSettingsModal === 'function') closeStudentSettingsModal();
             
-            // 2. Escondemos la App principal
+            // 2. Limpiamos las variables globales de memoria
+            if (typeof currentStudentId !== 'undefined') currentStudentId = null;
+            if (typeof currentUserRole !== 'undefined') currentUserRole = null;
+
+            // 3. Cerramos cualquier ventana modal que esté abierta por seguridad
+            if (typeof closeStudentSettingsModal === 'function') closeStudentSettingsModal();
+            if (typeof closeCoachSettingsModal === 'function') closeCoachSettingsModal();
+            
+            // 4. Escondemos la App principal (Header y Main)
             const header = document.getElementById('app-header');
             const main = document.getElementById('app-main');
             if (header) header.classList.add('hidden');
             if (main) main.classList.add('hidden');
             
-            // 3. Limpiamos las cajas de texto de seguridad
+            // 5. Ocultamos a la fuerza el engranaje del coach para que no persista visualmente
+            const coachGear = document.getElementById('btn-coach-gear');
+            if (coachGear) {
+                coachGear.style.setProperty('display', 'none', 'important');
+            }
+
+            // 6. Limpiamos las cajas de texto del formulario de login
             const userInput = document.getElementById('login-username');
             const passInput = document.getElementById('login-password');
             if (userInput) userInput.value = '';
             if (passInput) passInput.value = '';
             
-            // 4. Aseguramos que se muestre el formulario de Login y no el de Registro
+            // 7. Aseguramos que se muestre el formulario de Login y no el de Registro
             if (typeof toggleAuthView === 'function') toggleAuthView('login');
             
-            // 5. Mostramos de nuevo la pantalla de cristal con el video
+            // 8. Mostramos de nuevo la pantalla de cristal con el video y efecto prémium
             const loginView = document.getElementById('view-login');
             if (loginView) {
                 loginView.classList.remove('hidden');
-                // Pequeño delay para que la transición de aparición (fade in) se vea premium
                 setTimeout(() => {
                     loginView.classList.remove('opacity-0');
                 }, 50);
             }
             
-            // 6. Mensaje de despedida
-            showToast("Sesión cerrada correctamente", "fa-arrow-right-from-bracket");
-            coachGear.style.setProperty('display', 'none', 'important');
+            // 9. Mensaje de confirmación en pantalla
+            if (typeof showToast === 'function') {
+                showToast("Sesión cerrada correctamente", "fa-arrow-right-from-bracket");
+            }
         }
 
-
-
+        
         function openCoachSettingsModal() {
             const modal = document.getElementById('modal-coach-settings');
             if (modal) modal.classList.remove('hidden');
