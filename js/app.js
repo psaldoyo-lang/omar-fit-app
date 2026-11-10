@@ -791,7 +791,7 @@ function syncStudentView(studentId = 1) {
            });
         }
     }
-    }
+
 
     const latestWeight = measures.length > 0 && measures[0].weight > 0 ? measures[0].weight + ' kg' : '-- kg';
     
@@ -848,6 +848,7 @@ function syncStudentView(studentId = 1) {
         renderProgressChart(curStudent.progresos);
     }
 }
+
    
 
       function selectDay(day) {
