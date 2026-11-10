@@ -2769,7 +2769,6 @@ function renderProgressChart(historial, studentId) {
         const canvas = document.getElementById('progressChart');
         const emptyState = document.getElementById('chart-empty-state');
         const chartContainer = document.getElementById('chart-container');
-        const coachActionsContainer = document.getElementById('coach-chart-actions'); // 👈 Contenedor fijo
         
         if (!canvas || !emptyState || !chartContainer) return;
 
@@ -2788,7 +2787,7 @@ function renderProgressChart(historial, studentId) {
             return null;
         }).filter(item => item !== null);
         
-        // 2. Filtrar registros válidos
+        // 2. Filtrar solo los registros que tengan al menos 1 peso válido
         const historialValido = historialPlano.filter(h => {
             return (parseFloat(h.sentadilla) > 0) || 
                    (parseFloat(h.muerto) > 0) || 
@@ -2797,36 +2796,55 @@ function renderProgressChart(historial, studentId) {
                    (parseFloat(h.ext) > 0);
         });
 
-        // Limpiamos los botones anteriores del coach
-        if (coachActionsContainer) coachActionsContainer.innerHTML = '';
+        // 3. GESTIÓN AUTOMÁTICA DEL TACHITO DEL COACH EN LA TARJETA
+        // Buscamos o creamos el contenedor de acciones del coach dentro de la tarjeta de evolución
+        let cardHeader = chartContainer.closest('.bg-[#101014], .bg-zinc-900, div') || chartContainer.parentNode;
+        let coachActionsContainer = document.getElementById('coach-chart-actions');
+        
+        if (!coachActionsContainer) {
+            coachActionsContainer = document.createElement('div');
+            coachActionsContainer.id = 'coach-chart-actions';
+            coachActionsContainer.className = 'flex items-center gap-2 mt-2 sm:mt-0';
+            
+            // Intentamos ponérselo al lado del título "EVOLUCIÓN DE FUERZA"
+            const titleEl = cardHeader.querySelector('h3');
+            if (titleEl && titleEl.parentNode) {
+                titleEl.parentNode.classList.add('flex', 'flex-wrap', 'justify-between', 'items-center');
+                titleEl.parentNode.appendChild(coachActionsContainer);
+            } else {
+                chartContainer.parentNode.insertBefore(coachActionsContainer, chartContainer);
+            }
+        }
+        coachActionsContainer.innerHTML = '';
 
         if (historialValido.length === 0) {
             chartContainer.style.display = 'none';
             chartContainer.classList.add('hidden');
             emptyState.style.display = 'flex';
             emptyState.classList.remove('hidden');
+            coachActionsContainer.style.display = 'none';
             return; 
         } else {
             emptyState.style.display = 'none';
             emptyState.classList.add('hidden');
             chartContainer.style.display = 'block';
             chartContainer.classList.remove('hidden');
+            coachActionsContainer.style.display = 'flex';
         }
 
-        // 3. 🛡️ SI ES EL COACH, RENDERIZAMOS LOS TACHITOS EN LA CABECERA
-        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && coachActionsContainer && studentId) {
+        // 4. Si es el Coach, inyectamos los botones de borrado para los meses visibles
+        if (typeof currentUserRole !== 'undefined' && currentUserRole === 'coach' && studentId) {
             const registrosRecientes = historialValido.slice(-2);
             registrosRecientes.forEach(reg => {
                 const btnDelete = document.createElement('button');
-                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 border border-red-500/20 flex items-center gap-1 shadow-sm';
-                btnDelete.title = `Eliminar registro de ${reg.mes || 'Mes'}`;
-                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can text-xs"></i> <span class="hidden sm:inline">${reg.mes || 'Borrar'}</span>`;
+                btnDelete.className = 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 border border-red-500/20 flex items-center gap-1.5 shadow-md';
+                btnDelete.innerHTML = `<i class="fa-solid fa-trash-can"></i> <span>Borrar ${reg.mes || 'Mes'}</span>`;
                 btnDelete.onclick = () => confirmDeleteProgress(studentId, reg._originalIndex);
                 coachActionsContainer.appendChild(btnDelete);
             });
         }
 
-        // 4. Retraso para Chart.js
+        // 5. Retraso para Chart.js
         setTimeout(() => {
             if (typeof progressChartInstance !== 'undefined' && progressChartInstance !== null) {
                 progressChartInstance.destroy();
