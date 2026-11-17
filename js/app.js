@@ -2298,7 +2298,20 @@ function getStudentRoutine() {
 // 2. Abrir Modal del Coach
 function openRoutineModal(studentId) {
     document.getElementById('routine-student-id').value = studentId;
-    
+  
+    // Poblamos el selector con los otros alumnos disponibles
+    const copySelect = document.getElementById('select-copy-routine-student');
+    if (copySelect) {
+        copySelect.innerHTML = '<option value="">-- Seleccionar Atleta --</option>';
+        studentsList.forEach(s => {
+            if (s.id !== studentId) { // No mostramos al mismo alumno
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                copySelect.appendChild(opt);
+            }
+        });
+    }
     // Simulamos la vista del alumno temporalmente para extraer su rutina
     const backupId = currentStudentId; 
     currentStudentId = studentId; 
@@ -2334,6 +2347,45 @@ function changeRoutineDayEditor(day) {
     renderExerciseEditors(dayData.exercises);
 }
 
+// ==========================================
+// COPIAR / CLONAR RUTINA DE OTRO ATLETA
+// ==========================================
+function copiarRutinaDesdeAlumno() {
+    const copySelect = document.getElementById('select-copy-routine-student');
+    const sourceStudentId = parseInt(copySelect?.value, 10);
+
+    if (!sourceStudentId) {
+        showToast("Selecciona un alumno para copiar su rutina", "fa-triangle-exclamation");
+        return;
+    }
+
+    const sourceStudent = studentsList.find(s => s.id === sourceStudentId);
+    if (!sourceStudent) {
+        showToast("Atleta no encontrado", "fa-triangle-exclamation");
+        return;
+    }
+
+    // Obtenemos la rutina del alumno origen (o su plantilla base)
+    let sourceRoutine = sourceStudent.rutina;
+    if (!sourceRoutine || Object.keys(sourceRoutine).length === 0) {
+        sourceRoutine = {
+            lun: { tag: "PECHO & TRÍCEPS", exercises: workoutData.lun },
+            mar: { tag: "ESPALDA & BÍCEPS", exercises: workoutData.mar },
+            mie: { tag: "PIERNA COMPLETA", exercises: workoutData.mie },
+            jue: { tag: "HOMBRO & TRAPECIO", exercises: workoutData.jue },
+            vie: { tag: "CARDIO & HIIT", exercises: workoutData.vie },
+            sab: { tag: "GLÚTEO & FEMORAL", exercises: workoutData.sab }
+        };
+    }
+
+    // Clonamos en memoria para el editor actual
+    tempRoutineData = JSON.parse(JSON.stringify(sourceRoutine));
+
+    // Refrescamos el editor en el día actual para mostrar los ejercicios clonados
+    changeRoutineDayEditor(currentEditDay || 'lun');
+
+    showToast(`Rutina copiada de ${sourceStudent.name} 📋`, "fa-copy");
+}
 
 
 

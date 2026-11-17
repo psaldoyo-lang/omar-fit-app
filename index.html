@@ -804,6 +804,24 @@
             </div>
             <input type="hidden" id="routine-student-id">
             
+            <!-- Barra para Copiar / Clonar Rutina de otro Alumno -->
+        <div class="mb-4 bg-[#09090b] p-3 rounded-xl border border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div class="flex items-center space-x-2 text-zinc-400 text-xs">
+              <i class="fa-solid fa-copy text-brand-red"></i>
+              <span class="font-bold">Copiar rutina de:</span>
+            </div>
+        <div class="flex items-center space-x-2 flex-1 sm:max-w-xs">
+           
+            <select id="select-copy-routine-student" class="w-full bg-[#121215] border border-zinc-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-brand-red">
+                <option value="">-- Seleccionar Atleta --</option>
+            </select>
+            <button type="button" onclick="copiarRutinaDesdeAlumno()" class="px-3 py-2 bg-zinc-800 hover:bg-brand-red text-white font-bold text-xs rounded-lg transition-all shadow shrink-0">
+            Copiar
+            </button>
+        </div>
+    </div>
+
+
             <div class="flex space-x-2 mb-4 overflow-x-auto pb-2 custom-scrollbar">
                 <button onclick="changeRoutineDayEditor('lun')" id="btn-edit-lun" class="edit-day-btn px-4 py-2 text-[11px] font-bold rounded-xl bg-brand-red text-white uppercase">Lunes</button>
                 <button onclick="changeRoutineDayEditor('mar')" id="btn-edit-mar" class="edit-day-btn px-4 py-2 text-[11px] font-bold rounded-xl bg-zinc-800 text-brand-muted hover:text-white uppercase">Martes</button>
