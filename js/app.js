@@ -2348,26 +2348,36 @@ function changeRoutineDayEditor(day) {
 }
 
 // ==========================================
-// COPIAR / CLONAR RUTINA DE OTRO ATLETA
+// COPIAR / CLONAR RUTINA DE OTRO ATLETA (CORREGIDO)
 // ==========================================
 function copiarRutinaDesdeAlumno() {
     const copySelect = document.getElementById('select-copy-routine-student');
-    const sourceStudentId = parseInt(copySelect?.value, 10);
+    const sourceStudentId = copySelect ? copySelect.value : '';
 
     if (!sourceStudentId) {
         showToast("Selecciona un alumno para copiar su rutina", "fa-triangle-exclamation");
         return;
     }
 
-    const sourceStudent = studentsList.find(s => s.id === sourceStudentId);
+    // Usamos == para evitar problemas entre texto y número
+    const sourceStudent = studentsList.find(s => s.id == sourceStudentId);
     if (!sourceStudent) {
         showToast("Atleta no encontrado", "fa-triangle-exclamation");
         return;
     }
 
-    // Obtenemos la rutina del alumno origen (o su plantilla base)
+    // 1. Extraemos y parseamos la rutina si viene en formato texto desde Supabase
     let sourceRoutine = sourceStudent.rutina;
-    if (!sourceRoutine || Object.keys(sourceRoutine).length === 0) {
+    if (typeof sourceRoutine === 'string') {
+        try { 
+            sourceRoutine = JSON.parse(sourceRoutine); 
+        } catch(e) { 
+            sourceRoutine = null; 
+        }
+    }
+
+    // 2. Si el alumno origen no tiene rutina personalizada, usamos la plantilla base
+    if (!sourceRoutine || typeof sourceRoutine !== 'object' || Object.keys(sourceRoutine).length === 0) {
         sourceRoutine = {
             lun: { tag: "PECHO & TRÍCEPS", exercises: workoutData.lun },
             mar: { tag: "ESPALDA & BÍCEPS", exercises: workoutData.mar },
@@ -2378,13 +2388,19 @@ function copiarRutinaDesdeAlumno() {
         };
     }
 
-    // Clonamos en memoria para el editor actual
+    // 3. Clonamos en memoria
     tempRoutineData = JSON.parse(JSON.stringify(sourceRoutine));
 
-    // Refrescamos el editor en el día actual para mostrar los ejercicios clonados
-    changeRoutineDayEditor(currentEditDay || 'lun');
+    // 4. Pintamos DIRECTAMENTE en pantalla sin llamar a saveCurrentDayInputs()
+    const dayToRender = currentEditDay || 'lun';
+    const dayData = tempRoutineData[dayToRender] || { tag: "", exercises: [] };
+    
+    const tagInput = document.getElementById('routine-day-tag');
+    if (tagInput) tagInput.value = dayData.tag || '';
+    
+    renderExerciseEditors(dayData.exercises || []);
 
-    showToast(`Rutina copiada de ${sourceStudent.name} 📋`, "fa-copy");
+    showToast(`¡Rutina copiada de ${sourceStudent.name}! 📋`, "fa-copy");
 }
 
 
