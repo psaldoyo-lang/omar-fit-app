@@ -192,144 +192,148 @@ const videoCache = {};
         };
 
    // =========================================================
-        // 1. FUNCIÓN DE LOGIN CON VALIDACIÓN DE CONTRASEÑA
-        // =========================================================
-       async function handleAppLogin(provider) {
-            const userVal = document.getElementById('login-username')?.value.toLowerCase().trim() || provider || '';
-            const passVal = document.getElementById('login-password')?.value || ''; // ATRAPAMOS LA CONTRASEÑA
-            
-            const loginView = document.getElementById('view-login');
-            const btnText = document.getElementById('btn-login-text');
-            const btnIcon = document.getElementById('btn-login-icon');
-            const submitBtn = document.getElementById('btn-login-submit');
-            
-            const coachGear = document.getElementById('btn-coach-gear');
-            if(coachGear) coachGear.style.setProperty('display', 'flex', 'important');
-           
-            // Efecto de carga
-            if(btnText && btnIcon && submitBtn) {
-                btnText.innerText = "Autenticando...";
-                btnIcon.className = "fa-solid fa-circle-notch fa-spin text-[10px]";
-                submitBtn.classList.add('opacity-80', 'cursor-wait');
-            }
+// 1. FUNCIÓN DE LOGIN CON VALIDACIÓN DE CONTRASEÑA
+// =========================================================
+async function handleAppLogin(provider) {
+    const userVal = document.getElementById('login-username')?.value.toLowerCase().trim() || provider || '';
+    const passVal = document.getElementById('login-password')?.value || ''; // ATRAPAMOS LA CONTRASEÑA
 
-            setTimeout(async () => {
-                const header = document.getElementById('app-header');
-                const main = document.getElementById('app-main');
-                const coachToggles = document.getElementById('coach-toggles');
-                const roleText = document.getElementById('header-role-text');
+    const loginView = document.getElementById('view-login');
+    const btnText = document.getElementById('btn-login-text');
+    const btnIcon = document.getElementById('btn-login-icon');
+    const submitBtn = document.getElementById('btn-login-submit');
 
-// MODO ADMINISTRADOR (Coach Omar - Conectado a Supabase con SHA-256)
-                if (userVal === 'coach' || userVal === 'omar' || userVal === 'admin') {
-                    // Consultamos la tabla admins en Supabase
-                    const { data: adminData, error: adminErr } = await supabaseClient
-                        .from('admins')
-                        .select('*')
-                        .eq('usuario', 'omar')
-                        .single();
+    const coachGear = document.getElementById('btn-coach-gear');
+    if (coachGear) coachGear.style.setProperty('display', 'flex', 'important');
 
-                    let passwordValida = adminData ? adminData.password : '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // Fallback por defecto ('admin' en hash)
-                    
-                    const hashedInputPass = await hashPassword(passVal);
-                    
-                    // Validamos si coincide el hash cifrado O si es texto plano antiguo
-                    if (hashedInputPass === passwordValida || passVal === passwordValida) {
-                        currentUserRole = 'coach';
-                        if(loginView) loginView.classList.add('opacity-0');
-                        setTimeout(() => {
-                            if(loginView) loginView.classList.add('hidden');
-                            if(header) header.classList.remove('hidden');
-                            if(main) main.classList.remove('hidden');
-                            
-                            if(coachToggles) coachToggles.classList.remove('hidden');
-                            if(roleText) roleText.innerText = "Modo Administrador";
-                            
-                            switchView('trainer');
-                            showToast("Bienvenido Coach Omar 🏆", "fa-crown");
-                            
-                            if(btnText && btnIcon && submitBtn) {
-                                btnText.innerText = "Iniciar Sesión";
-                                btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
-                                submitBtn.classList.remove('opacity-80', 'cursor-wait');
-                            }
-                        }, 500);
-                    } else {
-                        alert("⚠️ Contraseña de Administrador incorrecta.");
-                        if(btnText && btnIcon && submitBtn) {
-                            btnText.innerText = "Iniciar Sesión";
-                            btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
-                            submitBtn.classList.remove('opacity-80', 'cursor-wait');
-                        }
-                    }
-                    return;
-                }
+    // Efecto de carga
+    if (btnText && btnIcon && submitBtn) {
+        btnText.innerText = "Autenticando...";
+        btnIcon.className = "fa-solid fa-circle-notch fa-spin text-[10px]";
+        submitBtn.classList.add('opacity-80', 'cursor-wait');
+    }
 
-                // MODO ATLETA: Buscamos al alumno exacto
-                currentUserRole = 'student';
-                let foundStudent = [...studentsList].reverse().find(s => 
-                    (s.email && s.email.toLowerCase() === userVal) || 
-                    s.phone === userVal || 
-                    s.name.toLowerCase() === userVal
-                );
+    setTimeout(async () => {
+        const header = document.getElementById('app-header');
+        const main = document.getElementById('app-main');
+        const coachToggles = document.getElementById('coach-toggles');
+        const roleText = document.getElementById('header-role-text');
 
-               // VALIDACIÓN DE CONTRASEÑA BLINDADA
-                let isAuthValid = false;
-                if (foundStudent) {
-                    if (provider === 'google' || provider === 'facebook') {
-                        isAuthValid = true; 
-                    } else {
-                        // Comparamos el hash de lo que escribió el usuario con la base de datos
-                        const hashedInputPass = await hashPassword(passVal);
-                        
-                        if (foundStudent.password) {
-                            // Si ya tiene contraseña cifrada en la nube
-                            isAuthValid = (hashedInputPass === foundStudent.password || passVal === foundStudent.password);
-                        } else {
-                            // Si es un usuario antiguo sin contraseña creada, por defecto es su celular
-                            isAuthValid = (passVal === foundStudent.phone);
-                        }
-                    }
-                }
+        // MODO ADMINISTRADOR (Coach Omar - Conectado a Supabase con SHA-256)
+        if (userVal === 'coach' || userVal === 'omar' || userVal === 'admin') {
+            // Consultamos la tabla admins en Supabase
+            const { data: adminData, error: adminErr } = await supabaseClient
+                .from('admins')
+                .select('*')
+                .eq('usuario', 'omar')
+                .single();
 
-               // SI TODO ES CORRECTO
-                if (isAuthValid && foundStudent) {
-                    if(loginView) loginView.classList.add('opacity-0');
-                    setTimeout(() => {
-                        if(loginView) loginView.classList.add('hidden');
-                        if(header) header.classList.remove('hidden');
-                        if(main) main.classList.remove('hidden');
-                        
-                        if(coachToggles) coachToggles.classList.add('hidden');
-                        if(roleText) roleText.innerText = "Modo Atleta";
-                        
-                        currentStudentId = foundStudent.id; // Asignamos la sesión a este atleta
-                        
-                        // 🌟 AQUÍ COLOCAS LAS LÍNEAS DE PERSISTENCIA:
-                        localStorage.setItem('omarfit_logged_id', foundStudent.id);
-                        localStorage.setItem('omarfit_role', 'student');
+            let passwordValida = adminData ? adminData.password : '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // Fallback por defecto ('admin' en hash)
 
-                        switchView('student');
-                        syncStudentView(currentStudentId);
-                        showToast("¡A entrenar con todo! 🔥", "fa-fire");
-                        
-                        if(btnText && btnIcon && submitBtn) {
-                            btnText.innerText = "Iniciar Sesión";
-                            btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
-                            submitBtn.classList.remove('opacity-80', 'cursor-wait');
-                        }
-                    }, 500);
-                } 
-                // SI ALGO FALLA (Rebote de seguridad)
-                else {
-                    alert("⚠️ Credenciales incorrectas o atleta no encontrado.");
-                    if(btnText && btnIcon && submitBtn) {
+            const hashedInputPass = await hashPassword(passVal);
+
+            // Validamos si coincide el hash cifrado O si es texto plano antiguo
+            if (hashedInputPass === passwordValida || passVal === passwordValida) {
+                currentUserRole = 'coach';
+                if (loginView) loginView.classList.add('opacity-0');
+                setTimeout(() => {
+                    if (loginView) loginView.classList.add('hidden');
+                    if (header) header.classList.remove('hidden');
+                    if (main) main.classList.remove('hidden');
+
+                    if (coachToggles) coachToggles.classList.remove('hidden');
+                    if (roleText) roleText.innerText = "Modo Administrador";
+
+                    switchView('trainer');
+                    showToast("Bienvenido Coach Omar 🏆", "fa-crown");
+
+                    if (btnText && btnIcon && submitBtn) {
                         btnText.innerText = "Iniciar Sesión";
                         btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
                         submitBtn.classList.remove('opacity-80', 'cursor-wait');
                     }
+                }, 500);
+            } else {
+                alert("⚠️ Contraseña de Administrador incorrecta.");
+                if (btnText && btnIcon && submitBtn) {
+                    btnText.innerText = "Iniciar Sesión";
+                    btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
+                    submitBtn.classList.remove('opacity-80', 'cursor-wait');
                 }
-            }, 800);
+            }
+            return;
         }
+
+        // MODO ATLETA: Buscamos al alumno exacto
+        currentUserRole = 'student';
+        let foundStudent = [...studentsList].reverse().find(s => {
+            const phoneVal = String(s.phone || s.telefono || '').toLowerCase().trim();
+            const emailVal = String(s.email || '').toLowerCase().trim();
+            const nameVal = String(s.name || s.nombre || '').toLowerCase().trim();
+            return (emailVal && emailVal === userVal) ||
+                   (phoneVal && phoneVal === userVal) ||
+                   (nameVal && nameVal === userVal);
+        });
+
+        // VALIDACIÓN DE CONTRASEÑA BLINDADA
+        let isAuthValid = false;
+        if (foundStudent) {
+            if (provider === 'google' || provider === 'facebook') {
+                isAuthValid = true;
+            } else {
+                // Comparamos el hash de lo que escribió el usuario con la base de datos
+                const hashedInputPass = await hashPassword(passVal);
+                const studentPhone = String(foundStudent.phone || foundStudent.telefono || '').trim();
+
+                if (foundStudent.password) {
+                    // Si ya tiene contraseña cifrada en la nube
+                    isAuthValid = (hashedInputPass === foundStudent.password || passVal === foundStudent.password);
+                } else {
+                    // Si es un usuario antiguo sin contraseña creada, por defecto es su celular
+                    isAuthValid = (passVal.trim() === studentPhone);
+                }
+            }
+        }
+
+        // SI TODO ES CORRECTO
+        if (isAuthValid && foundStudent) {
+            if (loginView) loginView.classList.add('opacity-0');
+            setTimeout(() => {
+                if (loginView) loginView.classList.add('hidden');
+                if (header) header.classList.remove('hidden');
+                if (main) main.classList.remove('hidden');
+
+                if (coachToggles) coachToggles.classList.add('hidden');
+                if (roleText) roleText.innerText = "Modo Atleta";
+
+                currentStudentId = foundStudent.id; // Asignamos la sesión a este atleta
+
+                // 🌟 AQUÍ COLOCAS LAS LÍNEAS DE PERSISTENCIA:
+                localStorage.setItem('omarfit_logged_id', foundStudent.id);
+                localStorage.setItem('omarfit_role', 'student');
+
+                switchView('student');
+                syncStudentView(currentStudentId);
+                showToast("¡A entrenar con todo! 🔥", "fa-fire");
+
+                if (btnText && btnIcon && submitBtn) {
+                    btnText.innerText = "Iniciar Sesión";
+                    btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
+                    submitBtn.classList.remove('opacity-80', 'cursor-wait');
+                }
+            }, 500);
+        }
+        // SI ALGO FALLA (Rebote de seguridad)
+        else {
+            alert("⚠️ Credenciales incorrectas o atleta no encontrado.");
+            if (btnText && btnIcon && submitBtn) {
+                btnText.innerText = "Iniciar Sesión";
+                btnIcon.className = "fa-solid fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1";
+                submitBtn.classList.remove('opacity-80', 'cursor-wait');
+            }
+        }
+    }, 800);
+}
 
 
         // Función para cifrar contraseñas con SHA-256 de forma nativa
