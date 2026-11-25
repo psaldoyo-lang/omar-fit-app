@@ -2198,8 +2198,8 @@ function exportToCSV() {
         }
 
   
-        const supabaseUrl = 'https://atjrshlhcsyncklmuncb.supabase.co/';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0anJzaGxoY3N5bmNrbG11bmNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNjc1NjIsImV4cCI6MjEwODY0MzU2Mn0.8IU_T6nf2TTCmDH3oo8O-UVCG1VBJuT_5weopsX1wgg';
+        const supabaseUrl = 'https://retopiygnkikjwjcsamj.supabase.co';
+        const supabaseKey = 'sb_publishable_GNvGo99uBtcirlyXVZEw9w_W1uGxda3';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         console.log("¡Cerebro Supabase conectado con éxito al servidor!", supabaseClient);         
     
